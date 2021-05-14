@@ -135,7 +135,7 @@ class MoveConflictChecker(
 
             is KotlinDirectoryBasedMoveTarget -> {
                 val packageFqName = targetContainerFqName ?: return null
-                val targetModuleDescriptor = targetScope?.let { getModuleDescriptor(it) ?: return null }
+                val targetModuleDescriptor = targetFile?.let { getModuleDescriptor(it) ?: return null }
                     ?: resolutionFacade.moduleDescriptor
                 MutablePackageFragmentDescriptor(targetModuleDescriptor, packageFqName).withSource(fakeFile)
             }
@@ -249,7 +249,7 @@ class MoveConflictChecker(
 
     private fun checkModuleConflictsInUsages(externalUsages: MutableSet<UsageInfo>, conflicts: MultiMap<PsiElement, String>) {
         val newConflicts = MultiMap<PsiElement, String>()
-        val targetScope = moveTarget.targetScope ?: return
+        val targetScope = moveTarget.targetFile ?: return
 
         analyzeModuleConflictsInUsages(project, externalUsages, targetScope, newConflicts)
         if (!newConflicts.isEmpty) {
@@ -291,7 +291,7 @@ class MoveConflictChecker(
         internalUsages: MutableSet<UsageInfo>,
         conflicts: MultiMap<PsiElement, String>
     ) {
-        val targetScope = moveTarget.targetScope ?: return
+        val targetScope = moveTarget.targetFile ?: return
         val targetModule = targetScope.getModule(project) ?: return
         val resolveScope = targetModule.getScopeWithPlatformAwareDependencies()
 

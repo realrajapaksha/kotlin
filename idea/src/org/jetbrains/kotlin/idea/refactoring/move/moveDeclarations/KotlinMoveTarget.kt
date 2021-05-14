@@ -7,7 +7,6 @@ package org.jetbrains.kotlin.idea.refactoring.move.moveDeclarations
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import org.jetbrains.kotlin.idea.core.getOrCreateCompanionObject
@@ -30,21 +29,12 @@ interface KotlinMoveTarget {
     // Check possible errors and return corresponding message, or null if no errors are detected
     fun verify(file: PsiFile): String?
 
-    val targetScope: VirtualFile?
-        get() = targetFile
 }
 
 /**
  * [directory] is nullable when ??? why targetFile is insufficient
  */
-interface KotlinDirectoryBasedMoveTarget : KotlinMoveTarget {
-//    val directory: PsiDirectory?
-
-/*
-    override val targetScope: VirtualFile?
-        get() = super.targetScope ?: directory?.virtualFile
-*/
-}
+interface KotlinDirectoryBasedMoveTarget : KotlinMoveTarget
 
 object EmptyKotlinMoveTarget : KotlinMoveTarget {
     override val targetContainerFqName: FqName? = null
@@ -90,8 +80,6 @@ class KotlinMoveTargetForDeferredFile(
 ) : KotlinDirectoryBasedMoveTarget {
     private val createdFiles = HashMap<KtFile, KtFile?>()
 
-//    override val targetFile: VirtualFile? = directory?.virtualFile
-
     override fun getOrCreateTargetPsi(originalPsi: PsiElement): KtElement? {
         val originalFile = originalPsi.containingFile as? KtFile ?: return null
         return createdFiles.getOrPutNullable(originalFile) { createFile(originalFile) }
@@ -106,9 +94,7 @@ class KotlinMoveTargetForDeferredFile(
 class KotlinDirectoryMoveTarget(
     override val targetContainerFqName: FqName,
     override val targetFile: VirtualFile?
-//    override val directory: PsiDirectory
 ) : KotlinDirectoryBasedMoveTarget {
-//    override val targetFile: VirtualFile? = directory.virtualFile
 
     override fun getOrCreateTargetPsi(originalPsi: PsiElement) = originalPsi.containingFile as? KtFile
 
@@ -117,4 +103,4 @@ class KotlinDirectoryMoveTarget(
     override fun verify(file: PsiFile): String? = null
 }
 
-fun KotlinMoveTarget.getTargetModule(project: Project) = targetScope?.getModule(project)
+fun KotlinMoveTarget.getTargetModule(project: Project) = targetFile?.getModule(project)
