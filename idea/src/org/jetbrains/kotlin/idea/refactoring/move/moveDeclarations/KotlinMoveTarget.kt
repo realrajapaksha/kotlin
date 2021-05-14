@@ -80,10 +80,11 @@ class KotlinMoveTargetForCompanion(val targetClass: KtClass) : KotlinMoveTarget 
 class KotlinMoveTargetForDeferredFile(
     override val targetContainerFqName: FqName,
     override val directory: PsiDirectory?,
-    override val targetFile: VirtualFile? = directory?.virtualFile,
     private val createFile: (KtFile) -> KtFile?
 ) : KotlinDirectoryBasedMoveTarget {
     private val createdFiles = HashMap<KtFile, KtFile?>()
+
+    override val targetFile: VirtualFile? = directory?.virtualFile
 
     override fun getOrCreateTargetPsi(originalPsi: PsiElement): KtElement? {
         val originalFile = originalPsi.containingFile as? KtFile ?: return null
