@@ -71,7 +71,7 @@ class MoveKotlinFileHandler : MoveFileHandler() {
         val moveTarget = when (val newPackage = packageNameInfo.newContainer) {
             ContainerInfo.UnknownPackage -> EmptyKotlinMoveTarget
 
-            else -> KotlinMoveTargetForDeferredFile(newPackage.fqName!!, newParent) {
+            else -> KotlinMoveTargetForDeferredFile(newPackage.fqName!!, newParent?.virtualFile) {
                 newParent?.let {
                     MoveFilesOrDirectoriesUtil.doMoveFile(psiFile, it)
                     it.findFile(psiFile.name) as? KtFile

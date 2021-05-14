@@ -149,7 +149,7 @@ class ExtractSuperRefactoring(
 
             val moveTarget = if (targetParent is PsiDirectory) {
                 val targetPackage = targetParent.getPackage() ?: return conflicts
-                KotlinMoveTargetForDeferredFile(FqName(targetPackage.qualifiedName), targetParent) { null }
+                KotlinMoveTargetForDeferredFile(FqName(targetPackage.qualifiedName), targetParent.virtualFile) { null }
             } else {
                 KotlinMoveTargetForExistingElement(targetParent as KtElement)
             }

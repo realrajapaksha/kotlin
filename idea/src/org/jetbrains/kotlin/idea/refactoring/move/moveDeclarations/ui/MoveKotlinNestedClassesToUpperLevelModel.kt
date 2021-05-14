@@ -176,7 +176,7 @@ internal abstract class MoveKotlinNestedClassesToUpperLevelModel(
 
             val target = KotlinMoveTargetForDeferredFile(
                 targetPackageFqName,
-                target,
+                target.virtualFile,
             ) { createKotlinFile(targetFileName, target, targetPackageFqName.asString()) }
 
             target to MoveRefactoringDestination.FILE

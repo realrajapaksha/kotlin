@@ -34,11 +34,16 @@ interface KotlinMoveTarget {
         get() = targetFile
 }
 
+/**
+ * [directory] is nullable when ??? why targetFile is insufficient
+ */
 interface KotlinDirectoryBasedMoveTarget : KotlinMoveTarget {
-    val directory: PsiDirectory?
+//    val directory: PsiDirectory?
 
+/*
     override val targetScope: VirtualFile?
         get() = super.targetScope ?: directory?.virtualFile
+*/
 }
 
 object EmptyKotlinMoveTarget : KotlinMoveTarget {
@@ -79,12 +84,13 @@ class KotlinMoveTargetForCompanion(val targetClass: KtClass) : KotlinMoveTarget 
 
 class KotlinMoveTargetForDeferredFile(
     override val targetContainerFqName: FqName,
-    override val directory: PsiDirectory?,
+    override val targetFile: VirtualFile?,
+//    override val directory: PsiDirectory?,
     private val createFile: (KtFile) -> KtFile?
 ) : KotlinDirectoryBasedMoveTarget {
     private val createdFiles = HashMap<KtFile, KtFile?>()
 
-    override val targetFile: VirtualFile? = directory?.virtualFile
+//    override val targetFile: VirtualFile? = directory?.virtualFile
 
     override fun getOrCreateTargetPsi(originalPsi: PsiElement): KtElement? {
         val originalFile = originalPsi.containingFile as? KtFile ?: return null
@@ -99,9 +105,10 @@ class KotlinMoveTargetForDeferredFile(
 
 class KotlinDirectoryMoveTarget(
     override val targetContainerFqName: FqName,
-    override val directory: PsiDirectory
+    override val targetFile: VirtualFile?
+//    override val directory: PsiDirectory
 ) : KotlinDirectoryBasedMoveTarget {
-    override val targetFile: VirtualFile? = directory.virtualFile
+//    override val targetFile: VirtualFile? = directory.virtualFile
 
     override fun getOrCreateTargetPsi(originalPsi: PsiElement) = originalPsi.containingFile as? KtFile
 

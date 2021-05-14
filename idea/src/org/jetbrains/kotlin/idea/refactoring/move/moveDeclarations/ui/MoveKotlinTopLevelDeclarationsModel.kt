@@ -138,7 +138,7 @@ internal class MoveKotlinTopLevelDeclarationsModel(
 
         return KotlinMoveTargetForDeferredFile(
             FqName(targetPackage),
-            targetDirectory
+            targetDirectory?.virtualFile
         ) {
             val deferredFileName = if (singleSourceFileMode) fileNameInPackage else it.name
             val deferredFileDirectory = moveDestination.getTargetDirectory(it)
@@ -189,7 +189,7 @@ internal class MoveKotlinTopLevelDeclarationsModel(
 
         return KotlinMoveTargetForDeferredFile(
             targetPackageFqName,
-            psiDirectory
+            psiDirectory?.virtualFile
         ) {
             val actualPsiDirectory = psiDirectory ?: getOrCreateDirectory(targetDirectoryPathString, project)
             getOrCreateKotlinFile(targetFile.name, actualPsiDirectory, finalTargetPackageFqName)
