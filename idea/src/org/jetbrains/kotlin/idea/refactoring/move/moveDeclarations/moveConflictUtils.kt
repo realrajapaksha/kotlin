@@ -135,7 +135,7 @@ class MoveConflictChecker(
 
             is KotlinDirectoryBasedMoveTarget -> {
                 val packageFqName = targetContainerFqName ?: return null
-                val targetModuleDescriptor = targetFile?.let { getModuleDescriptor(it) ?: return null }
+                val targetModuleDescriptor = targetFileOrDir?.let { getModuleDescriptor(it) ?: return null }
                     ?: resolutionFacade.moduleDescriptor
                 MutablePackageFragmentDescriptor(targetModuleDescriptor, packageFqName).withSource(fakeFile)
             }
@@ -249,7 +249,7 @@ class MoveConflictChecker(
 
     private fun checkModuleConflictsInUsages(externalUsages: MutableSet<UsageInfo>, conflicts: MultiMap<PsiElement, String>) {
         val newConflicts = MultiMap<PsiElement, String>()
-        val targetScope = moveTarget.targetFile ?: return
+        val targetScope = moveTarget.targetFileOrDir ?: return
 
         analyzeModuleConflictsInUsages(project, externalUsages, targetScope, newConflicts)
         if (!newConflicts.isEmpty) {
@@ -291,7 +291,7 @@ class MoveConflictChecker(
         internalUsages: MutableSet<UsageInfo>,
         conflicts: MultiMap<PsiElement, String>
     ) {
-        val targetScope = moveTarget.targetFile ?: return
+        val targetScope = moveTarget.targetFileOrDir ?: return
         val targetModule = targetScope.getModule(project) ?: return
         val resolveScope = targetModule.getScopeWithPlatformAwareDependencies()
 
@@ -733,7 +733,7 @@ class MoveConflictChecker(
 
             val targetModule = moveTarget.getTargetModule(project) ?: return null
             val targetPackage = moveTarget.getTargetPackage() ?: return null
-            val targetDir = moveTarget.targetFile?.takeIf { it.isDirectory } ?: moveTarget.targetFile?.parent
+            val targetDir = moveTarget.targetFileOrDir?.takeIf { it.isDirectory } ?: moveTarget.targetFileOrDir?.parent
 
             val className = classToMove.nameAsSafeName.asString()
 
@@ -787,8 +787,8 @@ class MoveConflictChecker(
                 return KotlinJavaPsiFacade.getInstance(project).findPackage(fqName.asString(), GlobalSearchScope.moduleScope(module))
             }
 
-            return (targetFile?.toPsiDirectory(project)?.getPackage()
-                ?: targetFile?.toPsiFile(project)?.containingDirectory?.getPackage()
+            return (targetFileOrDir?.toPsiDirectory(project)?.getPackage()
+                ?: targetFileOrDir?.toPsiFile(project)?.containingDirectory?.getPackage()
                 ?: tryGetPackageFromTargetContainer())
         }
 

@@ -19,9 +19,13 @@ import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.utils.getOrPutNullable
 import java.util.*
 
+/**
+ * [targetFileOrDir] could be [VirtualFile.isDirectory] or a file. Nullable when...
+ * [targetScope] what is it?
+ */
 interface KotlinMoveTarget {
     val targetContainerFqName: FqName?
-    val targetFile: VirtualFile?
+    val targetFileOrDir: VirtualFile?
 
     fun getOrCreateTargetPsi(originalPsi: PsiElement): KtElement?
     fun getTargetPsiIfExists(originalPsi: PsiElement): KtElement?
@@ -38,7 +42,7 @@ interface KotlinDirectoryBasedMoveTarget : KotlinMoveTarget
 
 object EmptyKotlinMoveTarget : KotlinMoveTarget {
     override val targetContainerFqName: FqName? = null
-    override val targetFile: VirtualFile? = null
+    override val targetFileOrDir: VirtualFile? = null
 
     override fun getOrCreateTargetPsi(originalPsi: PsiElement): KtElement? = null
     override fun getTargetPsiIfExists(originalPsi: PsiElement): KtElement? = null
@@ -48,7 +52,7 @@ object EmptyKotlinMoveTarget : KotlinMoveTarget {
 class KotlinMoveTargetForExistingElement(val targetElement: KtElement) : KotlinMoveTarget {
     override val targetContainerFqName = targetElement.containingKtFile.packageFqName
 
-    override val targetFile: VirtualFile? = targetElement.containingKtFile.virtualFile
+    override val targetFileOrDir: VirtualFile? = targetElement.containingKtFile.virtualFile
 
     override fun getOrCreateTargetPsi(originalPsi: PsiElement) = targetElement
 
@@ -62,7 +66,7 @@ class KotlinMoveTargetForCompanion(val targetClass: KtClass) : KotlinMoveTarget 
     override val targetContainerFqName = targetClass.companionObjects.firstOrNull()?.fqName
         ?: targetClass.fqName!!.child(SpecialNames.DEFAULT_NAME_FOR_COMPANION_OBJECT)
 
-    override val targetFile: VirtualFile? = targetClass.containingKtFile.virtualFile
+    override val targetFileOrDir: VirtualFile? = targetClass.containingKtFile.virtualFile
 
     override fun getOrCreateTargetPsi(originalPsi: PsiElement) = targetClass.getOrCreateCompanionObject()
 
@@ -72,11 +76,15 @@ class KotlinMoveTargetForCompanion(val targetClass: KtClass) : KotlinMoveTarget 
     override fun verify(file: PsiFile): String? = null
 }
 
+/**
+ * Assumes that ([targetFileOrDir]) does not yet exist? Why deferred?
+ * [targetFileOrDir]
+ * [createFile] is called when? always? or when targetFileOrDir is null?
+ */
 class KotlinMoveTargetForDeferredFile(
     override val targetContainerFqName: FqName,
-    override val targetFile: VirtualFile?,
-//    override val directory: PsiDirectory?,
-    private val createFile: (KtFile) -> KtFile?
+    override val targetFileOrDir: VirtualFile?, //todo can it be null?
+    private val createFile: (KtFile) -> KtFile? // todo why KtFile?
 ) : KotlinDirectoryBasedMoveTarget {
     private val createdFiles = HashMap<KtFile, KtFile?>()
 
@@ -93,7 +101,7 @@ class KotlinMoveTargetForDeferredFile(
 
 class KotlinDirectoryMoveTarget(
     override val targetContainerFqName: FqName,
-    override val targetFile: VirtualFile?
+    override val targetFileOrDir: VirtualFile
 ) : KotlinDirectoryBasedMoveTarget {
 
     override fun getOrCreateTargetPsi(originalPsi: PsiElement) = originalPsi.containingFile as? KtFile
@@ -103,4 +111,4 @@ class KotlinDirectoryMoveTarget(
     override fun verify(file: PsiFile): String? = null
 }
 
-fun KotlinMoveTarget.getTargetModule(project: Project) = targetFile?.getModule(project)
+fun KotlinMoveTarget.getTargetModule(project: Project) = targetFileOrDir?.getModule(project)
