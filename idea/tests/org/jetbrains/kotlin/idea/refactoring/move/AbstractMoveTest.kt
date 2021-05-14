@@ -275,7 +275,7 @@ enum class MoveAction : AbstractMultifileRefactoringTest.RefactoringAction {
                     val fileName = (delegate.newClassName ?: elementToMove.name!!) + ".kt"
                     val targetPackageFqName = (mainFile as KtFile).packageFqName
                     val targetDir = mainFile.containingDirectory!!
-                    KotlinMoveTargetForDeferredFile(targetPackageFqName, targetDir, null) {
+                    KotlinMoveTargetForDeferredFile(targetPackageFqName, targetDir) {
                         createKotlinFile(fileName, targetDir, targetPackageFqName.asString())
                     }
                 }

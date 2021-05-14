@@ -189,8 +189,7 @@ internal class MoveKotlinTopLevelDeclarationsModel(
 
         return KotlinMoveTargetForDeferredFile(
             targetPackageFqName,
-            psiDirectory,
-            targetFile = null
+            psiDirectory
         ) {
             val actualPsiDirectory = psiDirectory ?: getOrCreateDirectory(targetDirectoryPathString, project)
             getOrCreateKotlinFile(targetFile.name, actualPsiDirectory, finalTargetPackageFqName)
