@@ -1,11 +1,6 @@
 apply plugin: 'de.undercouch.download'
 apply plugin: 'base'
 
-configurations {
-  kotlin_src
-  kotlin_jvm
-}
-
 //final String kotlin_big_build_configuration = 'Kotlin_1360_Compiler'
 final Boolean useLocal = (findProperty("useLocal") ?: "false").toBoolean()
 final File kotlinLocalDir = rootDir
