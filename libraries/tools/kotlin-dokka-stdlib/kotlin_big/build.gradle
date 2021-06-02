@@ -7,11 +7,13 @@ configurations {
 }
 
 //final String kotlin_big_build_configuration = 'Kotlin_1360_Compiler'
-final String kotlin_big_version = findProperty("kotlinLocalVersionOverride") ?: '1.5.0'
+final Boolean useLocal = (findProperty("useLocal") ?: "false").toBoolean()
+final File kotlinLocalDir = rootDir
+final String kotlin_big_version = useLocal ? findProperty("defaultSnapshotVersion") : '1.5.0'
 final String kotlin_big_build = "1.5.0-release-749"
 
 repositories {
-  if (findProperty("kotlinLocalVersionOverride") != null) mavenLocal()
+  if (useLocal) mavenLocal()
 //  maven { url = "https://teamcity.jetbrains.com/guestAuth/repository/download/$kotlin_big_build_configuration/$kotlin_big_build/maven" }
   mavenCentral()
 }
@@ -87,8 +89,8 @@ task downloadKotlinSources(type: Download) {
 task extractKotlinSources(type: Sync, dependsOn: downloadKotlinSources) {
   String pathPrefix = ""
 
-  if (project.findProperty("kotlinLocalRoot") != null) {
-    from project.property("kotlinLocalRoot")
+  if (useLocal) {
+    from kotlinLocalDir
     exclude "**/build"
     exclude "**/node_modules"
   } else {
