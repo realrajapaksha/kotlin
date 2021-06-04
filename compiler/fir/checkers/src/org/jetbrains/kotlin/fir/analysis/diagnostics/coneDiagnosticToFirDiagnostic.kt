@@ -38,6 +38,7 @@ private fun ConeDiagnostic.toFirDiagnostic(
     is ConeUnresolvedSymbolError -> FirErrors.UNRESOLVED_REFERENCE.on(source, this.classId.asString())
     is ConeUnresolvedNameError -> FirErrors.UNRESOLVED_REFERENCE.on(source, this.name.asString())
     is ConeUnresolvedQualifierError -> FirErrors.UNRESOLVED_REFERENCE.on(source, this.qualifier)
+    is ConeFunctionCallExpectedError -> FirErrors.FUNCTION_CALL_EXPECTED.on(source, this.name.asString(), this.hasValueParameters)
     is ConeHiddenCandidateError -> FirErrors.INVISIBLE_REFERENCE.on(source, this.candidateSymbol)
     is ConeAmbiguityError -> if (this.applicability.isSuccess) {
         FirErrors.OVERLOAD_RESOLUTION_AMBIGUITY.on(source, this.candidates.map { it.symbol })
