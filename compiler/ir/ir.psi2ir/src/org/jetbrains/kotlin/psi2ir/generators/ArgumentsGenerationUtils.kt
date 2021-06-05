@@ -377,7 +377,7 @@ private fun StatementGenerator.createFunctionForSuspendConversion(
 
     irAdapterFun.extensionReceiverParameter = createValueParameter("callee", -1, funType.toIrType())
     irAdapterFun.valueParameters = suspendFunType.arguments
-        .take(suspendFunType.arguments.size - 1)
+        .subList(0, suspendFunType.arguments.size - 1)
         .mapIndexed { index, typeProjection -> createValueParameter("p$index", index, typeProjection.type.toIrType()) }
 
     val valueArgumentsCount = irAdapterFun.valueParameters.size

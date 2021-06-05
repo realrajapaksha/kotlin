@@ -34,7 +34,7 @@ import org.jetbrains.kotlin.serialization.deserialization.ProtoEnumFlags
 import org.jetbrains.kotlin.serialization.deserialization.getClassId
 import org.jetbrains.kotlin.serialization.deserialization.getName
 import org.jetbrains.kotlin.types.Variance
-import java.util.*
+import kotlin.math.max
 
 class FirTypeDeserializer(
     val moduleData: FirModuleData,
@@ -173,12 +173,18 @@ class FirTypeDeserializer(
         val continuationType = arguments.getOrNull(arguments.lastIndex - 1) as? ConeClassLikeType ?: return null
         if (!continuationType.isContinuation()) return ConeClassLikeTypeImpl(functionTypeConstructor, arguments, isNullable, attributes)
         val suspendReturnType = continuationType.typeArguments.single() as ConeKotlinTypeProjection
-        val valueParameters = arguments.dropLast(2)
+
+        val arity = max(arguments.size - 2, 0)
+        val valueParameters = ArrayList<ConeTypeProjection>(max(arguments.size - 1, 1))
+        for (index in 0 until arguments.size - 2) {
+            valueParameters.add(arguments[index])
+        }
+        valueParameters.add(suspendReturnType)
 
         val kind = FunctionClassKind.SuspendFunction
         return ConeClassLikeTypeImpl(
-            ConeClassLikeLookupTagImpl(ClassId(kind.packageFqName, kind.numberedClassName(valueParameters.size))),
-            (valueParameters + suspendReturnType).toTypedArray(),
+            ConeClassLikeLookupTagImpl(ClassId(kind.packageFqName, kind.numberedClassName(arity))),
+            valueParameters.toTypedArray(),
             isNullable, attributes
         )
     }

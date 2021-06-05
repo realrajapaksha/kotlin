@@ -39,7 +39,7 @@ internal class FirLightTypeParameterListForSymbol(
 
     private val _typeParameters: Array<PsiTypeParameter> by lazyPub {
         symbolWithTypeParameterList.typeParameters.let { list ->
-            list.take(list.count() - innerShiftCount).mapIndexed { index, parameter ->
+            list.subList(0, list.count() - innerShiftCount).mapIndexed { index, parameter ->
                 FirLightTypeParameter(
                     parent = this@FirLightTypeParameterListForSymbol,
                     index = index,

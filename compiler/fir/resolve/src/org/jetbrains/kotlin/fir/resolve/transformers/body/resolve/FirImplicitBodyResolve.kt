@@ -267,8 +267,14 @@ private class ReturnTypeCalculatorWithJump(
             (listOf(file) + outerClasses.filterNotNull().asReversed()) to null
         }
 
+        val transformerDesignation = ArrayList<FirElement>(designation.size)
+        for (element in designation.subList(1, designation.size)) {
+            transformerDesignation.add(element)
+        }
+        transformerDesignation.add(declaration)
+
         val transformer = createTransformer(
-            (designation.drop(1) + declaration).iterator(),
+            transformerDesignation.iterator(),
             session,
             scopeSession,
             implicitBodyResolveComputationSession,

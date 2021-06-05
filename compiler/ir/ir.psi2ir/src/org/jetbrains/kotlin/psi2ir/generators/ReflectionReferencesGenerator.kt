@@ -128,7 +128,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
 
         val ktFunctionalTypeArguments = ktFunctionalType.arguments
         val ktExpectedReturnType = ktFunctionalTypeArguments.last().type
-        val ktExpectedParameterTypes = ktFunctionalTypeArguments.take(ktFunctionalTypeArguments.size - 1).map { it.type }
+        val ktExpectedParameterTypes = ktFunctionalTypeArguments.subList(0, ktFunctionalTypeArguments.size - 1).map { it.type }
 
         val irAdapterFun =
             createAdapterFun(
@@ -588,7 +588,7 @@ class ReflectionReferencesGenerator(statementGenerator: StatementGenerator) : St
         statementGenerator.context.builtIns,
         annotations,
         null,
-        arguments.dropLast(1).map { it.type },
+        arguments.subList(0, arguments.size - 1).map { it.type },
         null,
         arguments.last().type,
         suspendFunction

@@ -7,13 +7,14 @@ package org.jetbrains.kotlin.fir.resolve.providers.impl
 
 import org.jetbrains.kotlin.fir.FirSession
 import org.jetbrains.kotlin.fir.NoMutableState
-import org.jetbrains.kotlin.fir.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE
+import org.jetbrains.kotlin.fir.ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE_NAME
 import org.jetbrains.kotlin.fir.resolve.FirQualifierResolver
 import org.jetbrains.kotlin.fir.resolve.symbolProvider
 import org.jetbrains.kotlin.fir.symbols.impl.FirClassifierSymbol
 import org.jetbrains.kotlin.fir.types.FirQualifierPart
 import org.jetbrains.kotlin.name.ClassId
 import org.jetbrains.kotlin.name.FqName
+import org.jetbrains.kotlin.name.Name
 
 @NoMutableState
 class FirQualifierResolverImpl(val session: FirSession) : FirQualifierResolver() {
@@ -23,29 +24,37 @@ class FirQualifierResolverImpl(val session: FirSession) : FirQualifierResolver()
 
         val fqName = ClassId(
             prefix.packageFqName,
-            parts.drop(1).fold(prefix.relativeClassName) { result, suffix -> result.child(suffix.name) },
+            parts.subList(1, parts.size).fold(prefix.relativeClassName) { result, suffix -> result.child(suffix.name) },
             false
         )
         return symbolProvider.getClassLikeSymbolByFqName(fqName)
     }
 
     override fun resolveSymbol(parts: List<FirQualifierPart>): FirClassifierSymbol<*>? {
-        if (parts.firstOrNull()?.name?.asString() == ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE) {
-            return resolveSymbol(parts.drop(1))
+        val actualParts = if (parts.firstOrNull()?.name == ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE_NAME) {
+            parts.subList(1, parts.size)
+        } else {
+            parts
         }
 
-        val firProvider = session.symbolProvider
+        if (actualParts.isNotEmpty()) {
+            var firstFqName = FqName.ROOT
+            for (index in actualParts.indices) {
+                firstFqName = firstFqName.child(actualParts[index].name)
+            }
+            val lastPart = ArrayList<Name>(actualParts.size)
 
-        if (parts.isNotEmpty()) {
-            val lastPart = mutableListOf<FirQualifierPart>()
-            val firstPart = parts.toMutableList()
+            while (!firstFqName.isRoot) {
+                lastPart.add(firstFqName.shortName())
+                firstFqName = firstFqName.parent()
 
-            while (firstPart.isNotEmpty()) {
-                lastPart.add(0, firstPart.last())
-                firstPart.removeAt(firstPart.lastIndex)
+                var lastFqName = FqName.ROOT
+                for (index in lastPart.size - 1 downTo 0) {
+                    lastFqName = lastFqName.child(lastPart[index])
+                }
 
-                val fqName = ClassId(firstPart.toFqName(), lastPart.toFqName(), false)
-                val foundSymbol = firProvider.getClassLikeSymbolByFqName(fqName)
+                val fqName = ClassId(firstFqName, lastFqName, false)
+                val foundSymbol = session.symbolProvider.getClassLikeSymbolByFqName(fqName)
                 if (foundSymbol != null) {
                     return foundSymbol
                 }
@@ -53,6 +62,4 @@ class FirQualifierResolverImpl(val session: FirSession) : FirQualifierResolver()
         }
         return null
     }
-
-    private fun List<FirQualifierPart>.toFqName() = fold(FqName.ROOT) { a, b -> a.child(b.name) }
 }

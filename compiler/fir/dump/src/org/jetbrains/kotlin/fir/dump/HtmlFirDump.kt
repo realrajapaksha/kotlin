@@ -611,7 +611,7 @@ class HtmlFirDump internal constructor(private var linkResolver: FirLinkResolver
     private fun <E> FlowContent.generateList(list: List<E>, separator: String = ", ", generate: FlowContent.(E) -> Unit) {
         if (list.isEmpty()) return
         generate(list.first())
-        for (element in list.drop(1)) {
+        for (element in list.subList(1, list.size)) {
             +separator
             generate(element)
         }

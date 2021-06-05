@@ -171,7 +171,7 @@ internal class AdapterGenerator(
         boundExtensionReceiver: IrExpression?
     ): IrSimpleFunction {
         val returnType = type.arguments.last().typeOrNull!!
-        val parameterTypes = type.arguments.dropLast(1).map { it.typeOrNull!! }
+        val parameterTypes = type.arguments.subList(0, type.arguments.size - 1).map { it.typeOrNull!! }
         val firMemberAdaptee = firAdaptee as FirMemberDeclaration
         return irFactory.createFunction(
             startOffset, endOffset,
@@ -427,7 +427,7 @@ internal class AdapterGenerator(
         invokeSymbol: IrSimpleFunctionSymbol
     ): IrSimpleFunction {
         val returnType = type.arguments.last().typeOrNull!!
-        val parameterTypes = type.arguments.dropLast(1).map { it.typeOrNull!! }
+        val parameterTypes = type.arguments.subList(0, type.arguments.size - 1).map { it.typeOrNull!! }
         return irFactory.createFunction(
             startOffset, endOffset,
             IrDeclarationOrigin.ADAPTER_FOR_SUSPEND_CONVERSION,

@@ -227,7 +227,12 @@ fun ConeKotlinType.returnType(session: FirSession): ConeKotlinType {
 
 fun ConeKotlinType.valueParameterTypesIncludingReceiver(session: FirSession): List<ConeKotlinType> {
     require(this is ConeClassLikeType)
-    return fullyExpandedType(session).typeArguments.dropLast(1).map { it.typeOrDefault(session.builtinTypes.nothingType.type) }
+    val typeArguments = fullyExpandedType(session).typeArguments
+    val result = ArrayList<ConeKotlinType>(typeArguments.size - 1)
+    for (index in 0 until typeArguments.size - 1) {
+        result.add(typeArguments[index].typeOrDefault(session.builtinTypes.nothingType.type))
+    }
+    return result
 }
 
 val FirAnonymousFunction.returnType: ConeKotlinType? get() = returnTypeRef.coneTypeSafe()
@@ -269,10 +274,11 @@ fun extractLambdaInfoFromFunctionalType(
     // can never fill its role.
     val receiverType = if (argument.isLambda) expectedType.receiverType(session) else argument.receiverType
     val expectedParameters = expectedType.valueParameterTypesIncludingReceiver(session).let {
-        if (receiverType != null && expectedType.isExtensionFunctionType(session)) it.drop(1) else it
+        if (receiverType != null && expectedType.isExtensionFunctionType(session)) it.subList(1, it.size) else it
     }
     val parameters = if (argument.isLambda && argument.valueParameters.isEmpty() && expectedParameters.size < 2) {
-        expectedParameters // Infer existence of a parameter named `it` of an appropriate type.
+        // Infer existence of a parameter named `it` of an appropriate type.
+        expectedParameters
     } else {
         argument.valueParameters.mapIndexed { index, parameter ->
             parameter.returnTypeRef.coneTypeSafe()

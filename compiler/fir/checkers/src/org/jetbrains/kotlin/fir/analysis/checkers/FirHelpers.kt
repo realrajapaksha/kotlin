@@ -46,6 +46,7 @@ import org.jetbrains.kotlin.types.model.TypeCheckerProviderContext
 import org.jetbrains.kotlin.util.ImplementationStatus
 import org.jetbrains.kotlin.util.OperatorNameConventions
 import org.jetbrains.kotlin.utils.addToStdlib.safeAs
+import kotlin.math.max
 
 private val INLINE_ONLY_ANNOTATION_CLASS_ID = ClassId.topLevel(FqName("kotlin.internal.InlineOnly"))
 
@@ -398,13 +399,15 @@ private fun isSubtypeOfForFunctionalTypeReturningUnit(
     if ((functionalTypeReturnType as? ConeClassLikeType)?.isUnit == true) {
         // We don't try to match return type for this case
         // Dropping the return type (getting only the lambda args)
-        val superTypeArgs = supertype.typeArguments.dropLast(1)
-        val subTypeArgs = subtype.typeArguments.dropLast(1)
-        if (superTypeArgs.size != subTypeArgs.size) return false
+        val superTypeArguments = supertype.typeArguments
+        val subTypeArguments = subtype.typeArguments
+        val superTypeArgsSize = max(superTypeArguments.size - 1, 0)
+        val subTypeArgsSize = max(subTypeArguments.size - 1, 0)
+        if (superTypeArgsSize != subTypeArgsSize) return false
 
-        for (i in superTypeArgs.indices) {
-            val subTypeArg = subTypeArgs[i].type ?: return false
-            val superTypeArg = superTypeArgs[i].type ?: return false
+        for (i in 0 until subTypeArgsSize) {
+            val subTypeArg = subTypeArguments[i].type ?: return false
+            val superTypeArg = superTypeArguments[i].type ?: return false
 
             if (!AbstractTypeChecker.isSubtypeOf(context.session.typeContext, subTypeArg, superTypeArg)) {
                 return false

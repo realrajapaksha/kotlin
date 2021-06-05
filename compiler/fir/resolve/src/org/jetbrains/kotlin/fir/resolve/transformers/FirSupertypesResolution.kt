@@ -483,8 +483,14 @@ class SupertypeComputationSession {
 
             if (classLikeDecl in visitedClassLikeDecls) {
                 if (classLikeDecl in pathSet) {
-                    loopedClassLikeDecls.add(classLikeDecl)
-                    loopedClassLikeDecls.addAll(path.takeLastWhile { element -> element != classLikeDecl })
+                    for (index in path.lastIndex downTo 0) {
+                        val element = path[index]
+                        loopedClassLikeDecls.add(element)
+
+                        if (element == classLikeDecl) {
+                            break
+                        }
+                    }
                 }
                 return
             }
@@ -534,7 +540,7 @@ class SupertypeComputationSession {
                 supertypeStatusMap[classLikeDecl] = SupertypeComputationStatus.Computed(resultSupertypeRefs)
             }
 
-            path.removeAt(path.size - 1)
+            path.removeAt(path.lastIndex)
             pathSet.remove(classLikeDecl)
         }
 

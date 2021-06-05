@@ -21,6 +21,7 @@ import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.name.Name
 
 const val ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE = "_root_ide_package_"
+val ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE_NAME = Name.identifier(ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE)
 
 class FirQualifiedNameResolver(private val components: BodyResolveComponents) {
     private val session = components.session
@@ -69,25 +70,30 @@ class FirQualifiedNameResolver(private val components: BodyResolveComponents) {
         if (qualifierStack.isEmpty()) {
             return null
         }
+
         val symbolProvider = session.symbolProvider
-        var qualifierParts = qualifierStack.asReversed().map { it.name.asString() }
+        val qualifierParts = qualifierStack.asReversed().map { it.name.asString() }
+        var qualifierPartsStart = 0
+        var qualifierPartsEnd = qualifierParts.size
+
+        fun qualifierPartsSize() = qualifierPartsEnd - qualifierPartsStart
 
         val fakeRootIdePrefixIsPresent = qualifierParts.firstOrNull() == ROOT_PREFIX_FOR_IDE_RESOLUTION_MODE
         if (fakeRootIdePrefixIsPresent) {
-            qualifierParts = qualifierParts.drop(1)
+            qualifierPartsStart += 1
         }
         var resolved: PackageOrClass?
         do {
             resolved = resolveToPackageOrClass(
                 symbolProvider,
-                FqName.fromSegments(qualifierParts)
+                FqName.fromSegments(qualifierParts, qualifierPartsStart, qualifierPartsEnd)
             )
             if (resolved == null)
-                qualifierParts = qualifierParts.dropLast(1)
-        } while (resolved == null && qualifierParts.isNotEmpty())
+                qualifierPartsEnd -= 1
+        } while (resolved == null && qualifierPartsSize() != 0)
 
         if (resolved != null) {
-            qualifierPartsToDrop = qualifierParts.size - 1
+            qualifierPartsToDrop = qualifierPartsSize() - 1
             // we would need to drop fake package too
             if (fakeRootIdePrefixIsPresent) {
                 qualifierPartsToDrop += 1
@@ -98,7 +104,9 @@ class FirQualifiedNameResolver(private val components: BodyResolveComponents) {
                 packageFqName = resolved.packageFqName
                 relativeClassFqName = resolved.relativeClassFqName
                 symbol = resolved.classSymbol
-                typeArguments.addAll(qualifierStack.take(qualifierParts.size).flatMap { it.typeArguments })
+                for (index in 0 until qualifierPartsSize()) {
+                    typeArguments.addAll(qualifierStack[index].typeArguments)
+                }
             }.apply {
                 resultType = components.typeForQualifier(this)
             }

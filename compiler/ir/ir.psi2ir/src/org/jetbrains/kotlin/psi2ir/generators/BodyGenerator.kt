@@ -94,7 +94,7 @@ class BodyGenerator(
 
         val ktBodyStatements = ktBody.statements
         if (ktBodyStatements.isNotEmpty()) {
-            for (ktStatement in ktBodyStatements.dropLast(1)) {
+            for (ktStatement in ktBodyStatements.subList(0, ktBodyStatements.size - 1)) {
                 irBlockBody.statements.add(statementGenerator.generateStatement(ktStatement))
             }
             val ktReturnedValue = ktBodyStatements.last()

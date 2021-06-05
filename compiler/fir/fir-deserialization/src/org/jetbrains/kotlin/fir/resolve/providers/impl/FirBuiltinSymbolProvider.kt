@@ -317,20 +317,23 @@ private class SyntheticFunctionalInterfaceCache(private val moduleData: FirModul
                                 CallableId(packageFqName, relativeClassName, name)
                             )
                             resolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES
-                            valueParameters += typeArguments.dropLast(1).mapIndexed { index, typeArgument ->
-                                val parameterName = Name.identifier("p${index + 1}")
-                                buildValueParameter {
-                                    moduleData = this@SyntheticFunctionalInterfaceCache.moduleData
-                                    origin = FirDeclarationOrigin.BuiltIns
-                                    resolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES
-                                    returnTypeRef = typeArgument
-                                    this.name = parameterName
-                                    symbol = FirVariableSymbol(parameterName)
-                                    defaultValue = null
-                                    isCrossinline = false
-                                    isNoinline = false
-                                    isVararg = false
-                                }
+
+                            for (typeArgumentIndex in 0 until typeArguments.size - 1) {
+                                val parameterName = Name.identifier("p${typeArgumentIndex + 1}")
+                                valueParameters.add(
+                                    buildValueParameter {
+                                        moduleData = this@SyntheticFunctionalInterfaceCache.moduleData
+                                        origin = FirDeclarationOrigin.BuiltIns
+                                        resolvePhase = FirResolvePhase.ANALYZED_DEPENDENCIES
+                                        returnTypeRef = typeArguments[typeArgumentIndex]
+                                        this.name = parameterName
+                                        symbol = FirVariableSymbol(parameterName)
+                                        defaultValue = null
+                                        isCrossinline = false
+                                        isNoinline = false
+                                        isVararg = false
+                                    }
+                                )
                             }
                             dispatchReceiverType = classId.defaultType(this@klass.typeParameters.map { it.symbol })
                         }

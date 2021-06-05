@@ -119,15 +119,17 @@ class FirTypeResolverImpl(private val session: FirSession) : FirTypeResolver() {
                     return ConeClassErrorType(ConeWrongNumberOfTypeArgumentsError(symbol.fir.typeParameters.size, symbol))
                 } else {
                     val substitutor = substitutor ?: ConeSubstitutor.Empty
-                    val argumentsFromOuterClassesAndParents = symbol.fir.typeParameters.drop(typeArguments.size).mapNotNull {
-                        val type = ConeTypeParameterTypeImpl(ConeTypeParameterLookupTag(it.symbol), isNullable = false)
-                        // we should report ConeSimpleDiagnostic(..., WrongNumberOfTypeArguments)
-                        // but genericArgumentNumberMismatch.kt test fails with
-                        // index out of bounds exception for start offset of
-                        // the source
-                        substitutor.substituteOrNull(type)
+                    val argumentsFromOuterClassesAndParents =
+                        symbol.fir.typeParameters.subList(typeArguments.size, symbol.fir.typeParameters.size)
+                            .mapNotNull {
+                                val type = ConeTypeParameterTypeImpl(ConeTypeParameterLookupTag(it.symbol), isNullable = false)
+                                // we should report ConeSimpleDiagnostic(..., WrongNumberOfTypeArguments)
+                                // but genericArgumentNumberMismatch.kt test fails with
+                                // index out of bounds exception for start offset of
+                                // the source
+                                substitutor.substituteOrNull(type)
 
-                    }.toTypedArray<ConeTypeProjection>()
+                            }.toTypedArray<ConeTypeProjection>()
                     typeArguments += argumentsFromOuterClassesAndParents
 
                     if (typeArguments.size != symbol.fir.typeParameters.size) {

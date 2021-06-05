@@ -28,6 +28,11 @@ public final class FqName {
         return new FqName(StringsKt.join(names, "."));
     }
 
+    @NotNull
+    public static FqName fromSegments(@NotNull List<String> names, int startIndex, int endIndex) {
+        return new FqName(StringsKt.join(names.subList(startIndex, endIndex), "."));
+    }
+
     public static final FqName ROOT = new FqName("");
 
     @NotNull

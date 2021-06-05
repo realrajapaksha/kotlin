@@ -88,12 +88,14 @@ class FirTowerResolver(
         val scope = constructedType.scope(components.session, components.scopeSession, FakeOverrideTypeCalculator.DoNothing) ?: return collector
 
         val dispatchReceiver =
-            if (outerType != null)
-                components.implicitReceiverStack.receiversAsReversed().drop(1).firstOrNull {
+            if (outerType != null) {
+                val receiversAsReversed = components.implicitReceiverStack.receiversAsReversed()
+                receiversAsReversed.subList(1, receiversAsReversed.size).firstOrNull {
                     AbstractTypeChecker.isSubtypeOf(components.session.typeContext, it.type, outerType)
                 } ?: return collector // TODO: report diagnostic about not-found receiver
-            else
+            } else {
                 null
+            }
 
         val candidateFactory = CandidateFactory(context, info)
         val resultCollector = collector

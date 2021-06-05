@@ -100,7 +100,7 @@ open class KDocTag(node: ASTNode) : KDocElementImpl(node) {
 
         var children = childrenAfterTagName()
         if (hasSubject(children)) {
-            children = children.drop(1)
+            children = children.subList(1, children.size)
         }
         for (node in children) {
             val type = node.elementType

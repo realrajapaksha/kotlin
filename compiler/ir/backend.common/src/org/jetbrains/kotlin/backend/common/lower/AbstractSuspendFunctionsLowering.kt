@@ -572,7 +572,7 @@ abstract class AbstractSuspendFunctionsLowering<C : CommonBackendContext>(val co
 
             valueParameters = createFunction.valueParameters
                 // Skip completion - invoke() already has it implicitly as a suspend function.
-                .take(createFunction.valueParameters.size - 1)
+                .subList(0, createFunction.valueParameters.size - 1)
                 .mapIndexed { index, parameter ->
                     parameter.copyTo(this, DECLARATION_ORIGIN_COROUTINE_IMPL, index)
                 }

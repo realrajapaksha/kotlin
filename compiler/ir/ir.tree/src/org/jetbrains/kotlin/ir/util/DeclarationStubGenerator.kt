@@ -351,7 +351,7 @@ abstract class DeclarationStubGenerator(
         val packageDescriptor = moduleDescriptor.getPackage(signature.packageFqName())
         val nameSegments = signature.nameSegments
         val toplevelDescriptors = packageDescriptor.memberScope.getDescriptorsFiltered { name -> name.asString() == nameSegments.first() }
-        val candidates = nameSegments.drop(1).fold(toplevelDescriptors) { acc, current ->
+        val candidates = nameSegments.subList(1, nameSegments.size).fold(toplevelDescriptors) { acc, current ->
             acc.flatMap { container ->
                 val classDescriptor = container as? ClassDescriptor ?: return@flatMap emptyList()
                 classDescriptor.constructors.filter { it.name.asString() == current } +
