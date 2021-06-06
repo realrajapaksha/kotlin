@@ -2224,7 +2224,7 @@ open class RawFirBuilder(
     private val extensionFunctionAnnotation = buildAnnotationCall {
         annotationTypeRef = buildResolvedTypeRef {
             type = ConeClassLikeTypeImpl(
-                ConeClassLikeLookupTagImpl(ClassId.fromString(EXTENSION_FUNCTION_ANNOTATION)),
+                ConeClassLikeLookupTagImpl(EXTENSION_FUNCTION_ANNOTATION),
                 emptyArray(),
                 isNullable = false
             )
