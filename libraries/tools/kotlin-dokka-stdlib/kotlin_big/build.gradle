@@ -1,16 +1,18 @@
 apply plugin: 'de.undercouch.download'
 apply plugin: 'base'
 
-//final String kotlin_big_build_configuration = 'Kotlin_1360_Compiler'
-final Boolean useLocal = (findProperty("useLocal") ?: "false").toBoolean()
 final File kotlinLocalDir = rootDir
-final String kotlin_big_version = useLocal ? findProperty("defaultSnapshotVersion") : '1.5.0'
-final String kotlin_big_build = "1.5.0-release-749"
+final boolean useExternalBuild = false
+final String externalKotlinBuild = "1.5.20-M1"
+final String externalKotlinVersion = "1.5.20-M1"
+final String kotlinVersion = useExternalBuild ? externalKotlinVersion : findProperty("defaultSnapshotVersion")
 
 repositories {
-  if (useLocal) mavenLocal()
-//  maven { url = "https://teamcity.jetbrains.com/guestAuth/repository/download/$kotlin_big_build_configuration/$kotlin_big_build/maven" }
-  mavenCentral()
+  if (useExternalBuild) {
+    mavenCentral()
+  } else {
+    mavenLocal()
+  }
 }
 
 final List<String> modules = [
@@ -48,8 +50,8 @@ modules.forEach { module ->
   }
 
   dependencies {
-    "$src"(group: 'org.jetbrains.kotlin', name: module, version: kotlin_big_version, classifier: 'sources') { transitive = false }
-    "$lib"(group: 'org.jetbrains.kotlin', name: module, version: kotlin_big_version)
+    "$src"(group: 'org.jetbrains.kotlin', name: module, version: kotlinVersion, classifier: 'sources') { transitive = false }
+    "$lib"(group: 'org.jetbrains.kotlin', name: module, version: kotlinVersion)
   }
 
   final Task sourcesTask = tasks.create("extract_source_$module", Sync) {
@@ -71,25 +73,27 @@ modules.forEach { module ->
 }
 
 
-final File kotlinSourcesZip = new File(buildDir, "kotlin-${kotlin_big_build}.zip")
+final String buildTag = "v${externalKotlinBuild}"
+final String externalSourcesUrl = "https://github.com/JetBrains/kotlin/archive/${buildTag}.zip"
+final File externalSourcesZip = new File(buildDir, "kotlin-${externalKotlinBuild}.zip")
 final File kotlinTargetDir = new File(buildDir, "sources/kotlin")
-final String kotlinUrl = "https://github.com/JetBrains/kotlin/archive/build-${kotlin_big_build}.zip"
 
-task downloadKotlinSources(type: Download) {
-  src kotlinUrl
-  dest kotlinSourcesZip
+task downloadExternalKotlinSources(type: Download) {
+  enabled = useExternalBuild
+  src externalSourcesUrl
+  dest externalSourcesZip
   overwrite false
 }
 
-task extractKotlinSources(type: Sync, dependsOn: downloadKotlinSources) {
+task extractKotlinSources(type: Sync, dependsOn: downloadExternalKotlinSources) {
   String pathPrefix = ""
 
-  if (useLocal) {
+  if (!useExternalBuild) {
     from kotlinLocalDir
     exclude "**/build"
     exclude "**/node_modules"
   } else {
-    from zipTree(kotlinSourcesZip)
+    from zipTree(externalSourcesZip)
     pathPrefix = "*/"
 
     eachFile { FileCopyDetails file ->

@@ -1,22 +1,17 @@
 apply plugin: 'de.undercouch.download'
 apply plugin: 'base'
 
-//TODO: there is no direct sync between tag and K/N version :(
-ext.kotlin_native_build_configuration = 'Kotlin_KotlinNative_Master_KotlinNativeDist'
-ext.kotlin_native_version = "1.5" // "${kotlin_native_sources_version}"
-ext.kotlin_native_build = "1.5-release-61" // "${kotin_native_version}-release-4565"
 
-ext.useBuildServer = false
-final String buildServer = 'https://buildserver.labs.intellij.net'
+final String kotlinNativeLocalDir = new File(rootDir, "kotlin-native")
+final boolean useExternalBuild = false
+final String externalKotlinNativeBuild = "1.5.20-M1"
+final String externalKotlinNativeVersion = "1.5.20-M1"
 
-if (useBuildServer) {
-  apply plugin: 'com.github.jk1.tcdeps'
+configurations {
+  kotlin_native
+}
 
-  repositories {
-    teamcityServer { url = buildServer }
-  }
-} else {
-  ext.kotlin_native_sources_revision = "v1.5-release-61" // "v${ext.kotlin_native_version}"
+if (useExternalBuild) {
   repositories {
     ivy {
       url "https://download.jetbrains.com/kotlin/native/builds/releases/"
@@ -29,99 +24,63 @@ if (useBuildServer) {
         }
       }
     }
-
   }
-}
 
-configurations {
-  kotlin_native_linux
-}
-
-def kotlinNativeDep(String target, String ext) {
-  return useBuildServer
-          ? tc(buildTypeId: kotlin_native_build_configuration, version: kotlin_native_build, artifactPath: "kotlin-native-$target-${kotlin_native_version}.$ext")
-          : [group: "org.jetbrains.kotlin", name: "kotlin-native", version: kotlin_native_version, classifier: target, ext: ext]
-}
-
-dependencies {
-  kotlin_native_linux   kotlinNativeDep("linux", "tar.gz")
+  dependencies {
+    kotlin_native group: "org.jetbrains.kotlin", name: "kotlin-native", version: externalKotlinNativeVersion, classifier: "linux", ext: "tar.gz"
+  }
 }
 
 final File kotlin_native_dir = new File(buildDir, "kotlin_native")
 
-task extractKotlinNativeBinariesLinux(type: Sync) {
-  from { tarTree(resources.gzip(configurations.kotlin_native_linux.singleFile)) }
-  into new File(kotlin_native_dir, 'linux')
-}
-
-
-final File teamCityBuildInfo = new File(buildDir, "kotlin-native-build-${kotlin_native_build}.xml")
-final String teamCityBuildsURL = "$buildServer/guestAuth/app/rest/builds/buildType:${kotlin_native_build_configuration},branch:default:any,number:${kotlin_native_build}"
-
-final File kotlinSourcesZip = new File(buildDir, "kotlin-${kotlin_native_build}.zip")
-final File kotlinTargetDir = new File(buildDir, "kotlin-native-sources")
-
-
-task getTeamCityBuildInfo(type: Download) {
-  final String url =  teamCityBuildsURL
-  doFirst {
-    println url
-  }
-  src url
-  dest teamCityBuildInfo
-  overwrite false
-}
-
-task inferTeamCityRevisionInfo() {
-  dependsOn getTeamCityBuildInfo
-  doFirst {
-    def xml = new XmlParser(false, false).parse(teamCityBuildInfo)
-    def revisions = xml.revisions as List<Node>
-    println revisions
-
-    if (revisions.size() != 1) {
-      throw new Error("Select the right VCS root from the list. Too many <revisions> elements in : $xml")
-    }
-
-    def revisionsNode = revisions[0]
-    if (revisionsNode.attribute("count") != "1") {
-      throw new Error("Select the right VCS root from the list: $revisionsNode")
-    }
-
-    final String kotlin_native_sources_tag = revisionsNode.children()[0].attribute("version")
-    println "Detected sources version: $kotlin_native_sources_tag"
-
-    tasks.downloadKotlinNativeSources.src("https://github.com/JetBrains/kotlin-native/archive/${kotlin_native_sources_tag}.zip")
-  }
-}
-
-task downloadKotlinNativeSources(type: Download) {
-  if (useBuildServer) {
-    dependsOn inferTeamCityRevisionInfo
+task extractKotlinNativeBinaries(type: Sync) {
+  if (!useExternalBuild) {
+    from file(new File(kotlinNativeLocalDir, "dist"))
   } else {
-    assert kotlin_native_sources_revision != null
-    src("https://github.com/JetBrains/kotlin-native/archive/${kotlin_native_sources_revision}.zip")
+    from tarTree(resources.gzip(configurations.kotlin_native.singleFile))
+
+    eachFile { FileCopyDetails file ->
+      //assume all files in the folder
+      file.path = file.path.split("/", 2)[1]
+    }
   }
-  dest kotlinSourcesZip
+  into kotlin_native_dir
+
+  includeEmptyDirs = false
+}
+
+
+final String buildTag = "v${externalKotlinNativeBuild}"
+final String externalSourcesUrl = "https://github.com/JetBrains/kotlin/archive/${buildTag}.zip"
+final File externalSourcesZip = new File(buildDir, "kotlin-${externalKotlinNativeBuild}.zip")
+final File kotlinNativeTargetDir = new File(buildDir, "kotlin-native-sources")
+
+
+task downloadExternalKotlinNativeSources(type: Download) {
+  enabled = useExternalBuild
+  src externalSourcesUrl
+  dest externalSourcesZip
   overwrite false
 }
 
-final Boolean useLocal = (findProperty("useLocal") ?: "false").toBoolean()
-final String kotlinNativeLocalDir = new File(rootDir, "kotlin-native")
+task extractKotlinNativeSources(type: Sync, dependsOn: downloadExternalKotlinNativeSources) {
+  if (!useExternalBuild) {
+    from kotlinNativeLocalDir
+  } else {
+    from zipTree(externalSourcesZip)
+    include "kotlin-native/**"
 
-task extractKotlinNativeSources(type: Sync, dependsOn: downloadKotlinNativeSources) {
-  enabled = !useLocal
-  from zipTree(kotlinSourcesZip)
-  into kotlinTargetDir
-  includeEmptyDirs = false
-
-  eachFile { FileCopyDetails file ->
-    //assume all files in the folder
-    file.path = file.path.split("/", 2)[1]
+    eachFile { FileCopyDetails file ->
+      //assume all files in the folder
+      file.path = file.path.split("/", 2)[1]
+    }
   }
+  into kotlinNativeTargetDir
+
+  includeEmptyDirs = false
 }
 
-task extractKotlinNative(dependsOn: [extractKotlinNativeSources, extractKotlinNativeBinariesLinux]) {}
+task extractKotlinNative(dependsOn: [extractKotlinNativeSources, extractKotlinNativeBinaries]) {}
 
-project.extensions.kotlin_native_root = useLocal ? kotlinNativeLocalDir : kotlinTargetDir
-project.extensions.kotlin_native_bin_linux = new File(kotlin_native_dir, "linux/kotlin-native-linux-${kotlin_native_version}")
+project.extensions.kotlin_native_root = kotlinNativeTargetDir
+project.extensions.kotlin_native_bin_linux = new File(kotlin_native_dir, "kotlin-native")
