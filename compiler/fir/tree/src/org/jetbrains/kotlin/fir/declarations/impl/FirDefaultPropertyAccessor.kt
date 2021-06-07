@@ -35,6 +35,7 @@ abstract class FirDefaultPropertyAccessor(
     valueParameters: MutableList<FirValueParameter>,
     isGetter: Boolean,
     visibility: Visibility,
+    modality: Modality = Modality.FINAL,
     effectiveVisibility: EffectiveVisibility? = null,
     symbol: FirPropertyAccessorSymbol
 ) : FirPropertyAccessorImpl(
@@ -47,9 +48,9 @@ abstract class FirDefaultPropertyAccessor(
     valueParameters,
     body = null,
     status = if (effectiveVisibility == null)
-        FirDeclarationStatusImpl(visibility, Modality.FINAL)
+        FirDeclarationStatusImpl(visibility, modality)
     else
-        FirResolvedDeclarationStatusImpl(visibility, Modality.FINAL, effectiveVisibility),
+        FirResolvedDeclarationStatusImpl(visibility, modality, effectiveVisibility),
     containerSource = null,
     dispatchReceiverType = null,
     contractDescription = FirEmptyContractDescription,
@@ -76,9 +77,9 @@ abstract class FirDefaultPropertyAccessor(
             isGetter: Boolean
         ): FirDefaultPropertyAccessor {
             return if (isGetter) {
-                FirDefaultPropertyGetter(source, moduleData, origin, propertyTypeRef, visibility)
+                FirDefaultPropertyGetter(source, moduleData, origin, propertyTypeRef, visibility, Modality.FINAL)
             } else {
-                FirDefaultPropertySetter(source, moduleData, origin, propertyTypeRef, visibility)
+                FirDefaultPropertySetter(source, moduleData, origin, propertyTypeRef, visibility, Modality.FINAL)
             }
         }
     }
@@ -90,6 +91,7 @@ class FirDefaultPropertyGetter(
     origin: FirDeclarationOrigin,
     propertyTypeRef: FirTypeRef,
     visibility: Visibility,
+    modality: Modality = Modality.FINAL,
     effectiveVisibility: EffectiveVisibility? = null,
     symbol: FirPropertyAccessorSymbol = FirPropertyAccessorSymbol()
 ) : FirDefaultPropertyAccessor(
@@ -100,6 +102,7 @@ class FirDefaultPropertyGetter(
     valueParameters = mutableListOf(),
     isGetter = true,
     visibility = visibility,
+    modality = modality,
     effectiveVisibility = effectiveVisibility,
     symbol = symbol
 )
@@ -110,6 +113,7 @@ class FirDefaultPropertySetter(
     origin: FirDeclarationOrigin,
     propertyTypeRef: FirTypeRef,
     visibility: Visibility,
+    modality: Modality = Modality.FINAL,
     effectiveVisibility: EffectiveVisibility? = null,
     symbol: FirPropertyAccessorSymbol = FirPropertyAccessorSymbol()
 ) : FirDefaultPropertyAccessor(
@@ -127,7 +131,8 @@ class FirDefaultPropertySetter(
         }
     ),
     isGetter = false,
-    visibility,
-    effectiveVisibility,
-    symbol
+    visibility = visibility,
+    modality = modality,
+    effectiveVisibility = effectiveVisibility,
+    symbol = symbol
 )
