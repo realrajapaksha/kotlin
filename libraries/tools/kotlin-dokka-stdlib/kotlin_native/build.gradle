@@ -31,7 +31,7 @@ if (useExternalBuild) {
   }
 }
 
-final File kotlin_native_dir = new File(buildDir, "kotlin_native")
+final File binariesDir = new File(buildDir, "binaries")
 
 task extractKotlinNativeBinaries(type: Sync) {
   if (!useExternalBuild) {
@@ -44,7 +44,7 @@ task extractKotlinNativeBinaries(type: Sync) {
       file.path = file.path.split("/", 2)[1]
     }
   }
-  into kotlin_native_dir
+  into binariesDir
 
   includeEmptyDirs = false
 }
@@ -83,4 +83,4 @@ task extractKotlinNativeSources(type: Sync, dependsOn: downloadExternalKotlinNat
 task extractKotlinNative(dependsOn: [extractKotlinNativeSources, extractKotlinNativeBinaries]) {}
 
 project.extensions.kotlin_native_root = kotlinNativeTargetDir
-project.extensions.kotlin_native_bin_linux = new File(kotlin_native_dir, "kotlin-native")
+project.extensions.kotlin_native_bin_linux = binariesDir
