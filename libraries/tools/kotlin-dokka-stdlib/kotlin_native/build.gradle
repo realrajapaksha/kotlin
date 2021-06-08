@@ -53,7 +53,7 @@ task extractKotlinNativeBinaries(type: Sync) {
 final String buildTag = "v${externalKotlinNativeBuild}"
 final String externalSourcesUrl = "https://github.com/JetBrains/kotlin/archive/${buildTag}.zip"
 final File externalSourcesZip = new File(buildDir, "kotlin-${externalKotlinNativeBuild}.zip")
-final File kotlinNativeTargetDir = new File(buildDir, "kotlin-native-sources")
+final File kotlinNativeTargetDir = new File(buildDir, "sources")
 
 
 task downloadExternalKotlinNativeSources(type: Download) {
@@ -67,12 +67,13 @@ task extractKotlinNativeSources(type: Sync, dependsOn: downloadExternalKotlinNat
   if (!useExternalBuild) {
     from kotlinNativeLocalDir
   } else {
-    from zipTree(externalSourcesZip)
-    include "kotlin-native/**"
+    from(zipTree(externalSourcesZip)) {
+      include "**/kotlin-native/**"
 
-    eachFile { FileCopyDetails file ->
-      //assume all files in the folder
-      file.path = file.path.split("/", 2)[1]
+      eachFile { FileCopyDetails file ->
+        //assume all files in the folder
+        file.path = file.path.split("/", 3)[2]
+      }
     }
   }
   into kotlinNativeTargetDir
