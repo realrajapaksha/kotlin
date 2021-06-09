@@ -29,7 +29,7 @@ object CommonExpressionCheckers : ExpressionCheckers() {
             FirAbstractSuperCallChecker,
             FirQualifiedSupertypeExtendedByOtherSupertypeChecker,
             FirProjectionsOnNonClassTypeArgumentChecker,
-            FirUpperBoundViolatedChecker,
+            FirUpperBoundViolatedExpressionChecker,
             FirTypeArgumentsNotAllowedExpressionChecker,
             FirTypeParameterInQualifiedAccessChecker,
             FirSealedClassConstructorCallChecker,
