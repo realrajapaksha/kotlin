@@ -35,11 +35,6 @@ interface KotlinMoveTarget {
 
 }
 
-/**
- * [directory] is nullable when ??? why targetFile is insufficient
- */
-interface KotlinDirectoryBasedMoveTarget : KotlinMoveTarget
-
 object EmptyKotlinMoveTarget : KotlinMoveTarget {
     override val targetContainerFqName: FqName? = null
     override val targetFileOrDir: VirtualFile? = null
@@ -85,7 +80,7 @@ class KotlinMoveTargetForDeferredFile(
     override val targetContainerFqName: FqName,
     override val targetFileOrDir: VirtualFile?, //todo can it be null?
     private val createFile: (KtFile) -> KtFile? // todo why KtFile?
-) : KotlinDirectoryBasedMoveTarget {
+) : KotlinMoveTarget {
     private val createdFiles = HashMap<KtFile, KtFile?>()
 
     override fun getOrCreateTargetPsi(originalPsi: PsiElement): KtElement? {
@@ -102,7 +97,7 @@ class KotlinMoveTargetForDeferredFile(
 class KotlinDirectoryMoveTarget(
     override val targetContainerFqName: FqName,
     override val targetFileOrDir: VirtualFile
-) : KotlinDirectoryBasedMoveTarget {
+) : KotlinMoveTarget {
 
     override fun getOrCreateTargetPsi(originalPsi: PsiElement) = originalPsi.containingFile as? KtFile
 

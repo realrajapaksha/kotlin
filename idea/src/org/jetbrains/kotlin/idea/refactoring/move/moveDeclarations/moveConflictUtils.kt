@@ -133,13 +133,13 @@ class MoveConflictChecker(
                 else -> null
             }
 
-            is KotlinDirectoryBasedMoveTarget -> {
+            is KotlinDirectoryMoveTarget, is KotlinMoveTargetForDeferredFile -> {
                 val packageFqName = targetContainerFqName ?: return null
                 val targetModuleDescriptor = targetFileOrDir?.let { getModuleDescriptor(it) ?: return null }
                     ?: resolutionFacade.moduleDescriptor
                 MutablePackageFragmentDescriptor(targetModuleDescriptor, packageFqName).withSource(fakeFile)
-            }
 
+            }
             else -> null
         }
     }
