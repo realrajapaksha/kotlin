@@ -40,6 +40,7 @@ class LldbTests {
         Process [..] stopped
         [..] stop reason = step over
         [..] at main.kt:5[..]
+        > q
     """)
 
     @Test
@@ -61,6 +62,7 @@ class LldbTests {
             (long) c = -3
             (short) d = 99
             (bool) e = true
+            > q
     """)
 
     @Test
@@ -82,6 +84,7 @@ class LldbTests {
         (ObjHeader *) args = []
         (ObjHeader *) point = [x: ..., y: ...]
         (ObjHeader *) person = []
+        > q
     """)
 
     @Test
@@ -104,6 +107,7 @@ class LldbTests {
         (ObjHeader *) args = []
         (ObjHeader *) xs = [..., ..., ...]
         (ObjHeader *) ys = [..., ...]
+        > q
     """)
 
     @Test
@@ -119,6 +123,7 @@ class LldbTests {
         > ${lldbCommandRunOrContinue()}
         > fr var xs
         (ObjHeader *) xs = [..., ..., ...]
+        > q
     """)
 
     @Test
@@ -167,6 +172,7 @@ class LldbTests {
         """
             > b 2
             Breakpoint 1: where = [..]`kfun:#question(kotlin.String;kotlin.Array<kotlin.String>){}kotlin.String [..] at kt33055.kt:2:12, [..]
+            > q
         """.trimIndent().lldb(kt33055)
     }
 
@@ -197,6 +203,7 @@ class LldbTests {
               frame #5: [..] kt42208.kexe`Konan_start(args=[..]) at kt42208-1.kt:1:1
               frame #6: [..]
               frame #7: [..]
+            > q
         """.trimIndent().lldb(binary)
     }
 
@@ -246,6 +253,7 @@ class LldbTests {
               frame #2: [..] kt42208.kexe`kfun:${'$'}main${'$'}<anonymous>_1${'$'}FUNCTION_REFERENCE${'$'}0.${'$'}<bridge-BNN>invoke(_this=[..]){}kotlin.Boolean#internal at kt42208-1.kt:2:5
               frame #3: [..] kt42208.kexe`kfun:#main(){} at kt42208-1.kt:5:5
               frame #4: [..] kt42208.kexe`Konan_start(args=[..]) at kt42208-1.kt:1:1
+            > q
         """.trimIndent().lldb(binary)
     }
 
