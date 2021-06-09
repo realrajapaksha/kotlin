@@ -3,10 +3,11 @@
  * that can be found in the LICENSE file.
  */
 
-#include <dlfcn.h>
-#include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 #include <string_view>
+#include <cstring>
+#include <cstdio>
+#include <unistd.h>
 
 #include "KAssert.h"
 #include "Memory.h"
@@ -14,7 +15,7 @@
 #include "ThreadData.hpp"
 #include "ThreadRegistry.hpp"
 #include "ThreadState.hpp"
-
+#include "ExecFormat.h"
 
 using namespace kotlin;
 
@@ -272,12 +273,13 @@ extern "C" RUNTIME_NOTHROW void Kotlin_mm_checkStateAtExternalFunctionCall(const
         return;
     }
 
+    char buf[200];
     if (callee == nullptr) {
-        Dl_info info;
-        if (dladdr(calleePtr, &info) == 0) {
-            info.dli_sname = nullptr;
+        if (AddressToSymbol(calleePtr, buf, sizeof(buf))) {
+            callee = buf;
+        } else {
+            callee = "unknown function";
         }
-        callee = info.dli_sname ?: "unknown function";
     }
 
     if (checker.isSafeByName(callee)) {

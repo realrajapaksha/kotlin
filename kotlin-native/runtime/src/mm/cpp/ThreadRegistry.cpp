@@ -4,6 +4,9 @@
  */
 
 #include "ThreadRegistry.hpp"
+#if __has_include("pthread_np.h")
+#include <pthread_np.h>
+#endif
 
 #include "GlobalData.hpp"
 #include "ThreadData.hpp"
