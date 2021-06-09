@@ -417,6 +417,8 @@ internal class Context(config: KonanConfig) : KonanBackendContext(config) {
 
     fun shouldPrintBitCode() = config.configuration.getBoolean(KonanConfigKeys.PRINT_BITCODE)
 
+    fun shouldCheckExternalCalls() = config.configuration.getBoolean(KonanConfigKeys.CHECK_EXTERNAL_CALLS)
+
     fun shouldPrintLocations() = config.configuration.getBoolean(KonanConfigKeys.PRINT_LOCATIONS)
 
     fun shouldPrintFiles() = config.configuration.getBoolean(KonanConfigKeys.PRINT_FILES)
