@@ -18,14 +18,17 @@ mm::ThreadRegistry& mm::ThreadRegistry::Instance() noexcept {
 mm::ThreadRegistry::Node* mm::ThreadRegistry::RegisterCurrentThread() noexcept {
     auto* threadDataNode = list_.Emplace(pthread_self());
     Node*& currentDataNode = currentThreadDataNode_;
-    RuntimeAssert(currentDataNode == nullptr, "This thread already had some data assigned to it.");
+    RuntimeAssert(!IsCurrentThreadRegistered(), "This thread already had some data assigned to it.");
     currentDataNode = threadDataNode;
     return threadDataNode;
 }
 
 void mm::ThreadRegistry::Unregister(Node* threadDataNode) noexcept {
     list_.Erase(threadDataNode);
-    // Do not touch `currentThreadData_` as TLS may already have been deallocated.
+    // Touch `currentThreadData_` only in main thread as otherwise TLS may already have been deallocated.
+    if (pthread_main_np()) {
+        currentThreadDataNode_ = nullptr;
+    }
 }
 
 mm::ThreadRegistry::Iterable mm::ThreadRegistry::Iter() noexcept {
