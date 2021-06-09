@@ -217,6 +217,12 @@ LLVMValueRef LLVMCreatePGOFunctionNameVar(LLVMValueRef llvmFunction, const char 
     return wrap(createPGOFuncNameVar(*fnPtr, pgoFunctionName));
 }
 
+void LLVMSetPrefixData(LLVMValueRef llvmFunction, LLVMValueRef prefixData) {
+    auto *fnPtr = cast<llvm::Function>(unwrap(llvmFunction));
+    auto *dataPtr = cast<llvm::Constant>(unwrap(prefixData));
+    fnPtr->setPrefixData(dataPtr);
+}
+
 void LLVMAddInstrProfPass(LLVMPassManagerRef passManagerRef, const char* outputFileName) {
     legacy::PassManagerBase *passManager = unwrap(passManagerRef);
     InstrProfOptions options;

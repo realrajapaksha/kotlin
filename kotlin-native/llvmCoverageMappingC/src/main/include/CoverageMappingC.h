@@ -70,6 +70,11 @@ LLVMValueRef LLVMInstrProfIncrement(LLVMModuleRef moduleRef);
  */
 LLVMValueRef LLVMCreatePGOFunctionNameVar(LLVMValueRef llvmFunction, const char *pgoFunctionName);
 
+/**
+ * Wrapper for llvm::Function::setPrefixData
+ */
+void LLVMSetPrefixData(LLVMValueRef llvmFunction, LLVMValueRef prefixData);
+
 void LLVMAddInstrProfPass(LLVMPassManagerRef passManagerRef, const char* outputFileName);
 
 void LLVMKotlinAddTargetLibraryInfoWrapperPass(LLVMPassManagerRef passManagerRef, const char* targetTriple);
