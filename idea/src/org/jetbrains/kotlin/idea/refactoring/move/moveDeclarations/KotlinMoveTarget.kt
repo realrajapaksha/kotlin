@@ -21,7 +21,6 @@ import java.util.*
 
 /**
  * [targetFileOrDir] could be [VirtualFile.isDirectory] or a file. Nullable when...
- * [targetScope] what is it?
  */
 interface KotlinMoveTarget {
     val targetContainerFqName: FqName?
@@ -47,7 +46,7 @@ object EmptyKotlinMoveTarget : KotlinMoveTarget {
 class KotlinMoveTargetForExistingElement(val targetElement: KtElement) : KotlinMoveTarget {
     override val targetContainerFqName = targetElement.containingKtFile.packageFqName
 
-    override val targetFileOrDir: VirtualFile? = targetElement.containingKtFile.virtualFile
+    override val targetFileOrDir: VirtualFile = targetElement.containingKtFile.virtualFile
 
     override fun getOrCreateTargetPsi(originalPsi: PsiElement) = targetElement
 
@@ -61,7 +60,7 @@ class KotlinMoveTargetForCompanion(val targetClass: KtClass) : KotlinMoveTarget 
     override val targetContainerFqName = targetClass.companionObjects.firstOrNull()?.fqName
         ?: targetClass.fqName!!.child(SpecialNames.DEFAULT_NAME_FOR_COMPANION_OBJECT)
 
-    override val targetFileOrDir: VirtualFile? = targetClass.containingKtFile.virtualFile
+    override val targetFileOrDir: VirtualFile = targetClass.containingKtFile.virtualFile
 
     override fun getOrCreateTargetPsi(originalPsi: PsiElement) = targetClass.getOrCreateCompanionObject()
 
@@ -72,14 +71,14 @@ class KotlinMoveTargetForCompanion(val targetClass: KtClass) : KotlinMoveTarget 
 }
 
 /**
- * Assumes that ([targetFileOrDir]) does not yet exist? Why deferred?
- * [targetFileOrDir]
- * [createFile] is called when? always? or when targetFileOrDir is null?
+ * Assumes that a target of move is another file (existent or not).
+ * [targetFileOrDir] is always a directory where a target file exists or to be created
+ * [createFile] is called to create a new file, should return null if file already exists (strange!)
  */
 class KotlinMoveTargetForDeferredFile(
     override val targetContainerFqName: FqName,
     override val targetFileOrDir: VirtualFile?, //todo can it be null?
-    private val createFile: (KtFile) -> KtFile? // todo why KtFile?
+    private val createFile: (KtFile) -> KtFile?
 ) : KotlinMoveTarget {
     private val createdFiles = HashMap<KtFile, KtFile?>()
 
