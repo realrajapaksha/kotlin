@@ -325,7 +325,6 @@ class MoveKotlinDeclarationsProcessor(
     internal fun doPerformRefactoring(usages: List<UsageInfo>) {
         fun moveDeclaration(declaration: KtNamedDeclaration, moveTarget: KotlinMoveTarget): KtNamedDeclaration {
             val targetContainer = moveTarget.getOrCreateTargetPsi(declaration)
-                ?: throw AssertionError("Couldn't create Kotlin file for: ${declaration::class.java}: ${declaration.text}")
             descriptor.delegate.preprocessDeclaration(descriptor, declaration)
             if (moveEntireFile) return declaration
             return mover(declaration, targetContainer).apply {

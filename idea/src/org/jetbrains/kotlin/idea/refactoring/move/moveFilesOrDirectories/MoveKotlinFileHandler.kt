@@ -71,10 +71,13 @@ class MoveKotlinFileHandler : MoveFileHandler() {
         val moveTarget = when (val newPackage = packageNameInfo.newContainer) {
             ContainerInfo.UnknownPackage -> EmptyKotlinMoveTarget
 
-            else -> KotlinMoveTargetForDeferredFile(newPackage.fqName!!, newParent?.virtualFile) {
-                newParent?.let {
-                    MoveFilesOrDirectoriesUtil.doMoveFile(psiFile, it)
-                    it.findFile(psiFile.name) as? KtFile
+            else -> if (newParent == null) {
+                return null
+            } else {
+                KotlinMoveTargetForDeferredFile(newPackage.fqName!!, newParent.virtualFile) {
+                    MoveFilesOrDirectoriesUtil.doMoveFile(psiFile, newParent)
+                    val file = newParent.findFile(psiFile.name) ?: throw IllegalStateException("Lost file after move")
+                    file as KtFile
                 }
             }
         }
