@@ -75,15 +75,16 @@ private class CallsChecker(val context: Context) {
 
         for (call in calls) {
             val calleeInfo = call.getCalledFunction() ?: continue
-            if (LLVMIsAInlineAsm(LLVMGetCalledValue(call)) != null) continue
             LLVMPositionBuilderBefore(builder, call)
-            val functionNameLlvm: LLVMValueRef?
-            val calledNameLlvm: LLVMValueRef?
+            val callSiteDescription: String
+            val calledName: String?
             val calledPtrLlvm: LLVMValueRef?
             when (calleeInfo.name) {
                 "objc_msgSend" -> {
-                    functionNameLlvm = context.llvm.staticData.cStringLiteral("$functionName(over objc_msgSend)").llvm
-                    calledNameLlvm = LLVMConstNull(int8TypePtr)
+                    //callsiteDescriptionLlvm = context.llvm.staticData.cStringLiteral("$functionName(over objc_msgSend)").llvm
+                    //calledNameLlvm = LLVMConstNull(int8TypePtr)
+                    callSiteDescription = "$functionName (over objc_msgSend)"
+                    calledName = null
                     val firstArgI8Ptr = LLVMBuildBitCast(builder, LLVMGetArgOperand(call, 0), int8TypePtr, "")
                     val firstArgClassPtr = LLVMBuildCall(builder, getClass, listOf(firstArgI8Ptr).toCValues(), 1, "")
                     val isNil = LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, LLVMBuildPtrToInt(builder, firstArgI8Ptr, int64Type, ""), Int64(0).llvm, "")
@@ -92,20 +93,22 @@ private class CallsChecker(val context: Context) {
                     calledPtrLlvm = LLVMBuildSelect(builder, isNil, calledPtrLlvmIfNil, calledPtrLlvmIfNotNil, "")
                 }
                 "objc_msgSendSuper2" -> {
-                    functionNameLlvm = context.llvm.staticData.cStringLiteral("$functionName(over objc_msgSendSuper2)").llvm
-                    calledNameLlvm = LLVMConstNull(int8TypePtr)
+                    callSiteDescription = "$functionName (over objc_msgSendSuper2)"
+                    calledName = null
                     val superStruct = LLVMGetArgOperand(call, 0)
                     val classPtrPtr = LLVMBuildGEP(builder, superStruct, listOf(Int32(0).llvm, Int32(1).llvm).toCValues(), 2, "")
                     val classPtr = LLVMBuildLoad(builder, classPtrPtr, "")
                     calledPtrLlvm = LLVMBuildCall(builder, getMethodImpl, listOf(classPtr, LLVMGetArgOperand(call, 1)).toCValues(), 2, "")
                 }
                 else -> {
-                    functionNameLlvm = context.llvm.staticData.cStringLiteral(functionName).llvm
-                    calledNameLlvm = if (calleeInfo.name == null) LLVMConstNull(int8TypePtr) else context.llvm.staticData.cStringLiteral(calleeInfo.name).llvm
+                    callSiteDescription = functionName
+                    calledName = calleeInfo.name
                     calledPtrLlvm = LLVMBuildBitCast(builder, calleeInfo.calledPtr, int8TypePtr, "")
                 }
             }
-            LLVMBuildCall(builder, checkerFunction, listOf(functionNameLlvm, calledNameLlvm, calledPtrLlvm).toCValues(), 3, "")
+            val callSiteDescriptionLlvm = context.llvm.staticData.cStringLiteral(callSiteDescription).llvm
+            val calledNameLlvm = if (calledName == null) LLVMConstNull(int8TypePtr) else context.llvm.staticData.cStringLiteral(calledName).llvm
+            LLVMBuildCall(builder, checkerFunction, listOf(callSiteDescriptionLlvm, calledNameLlvm, calledPtrLlvm).toCValues(), 3, "")
         }
         LLVMDisposeBuilder(builder)
     }
