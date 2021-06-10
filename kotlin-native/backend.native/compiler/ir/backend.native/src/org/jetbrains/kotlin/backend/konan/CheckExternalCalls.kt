@@ -59,11 +59,7 @@ private class CallsChecker(val context: Context) {
                 }
                 LLVMIsAGlobalAlias(value) != null -> cleanCalledFunction(LLVMAliasGetAliasee(value)!!)
                 else -> {
-                    LLVMDumpValue(this)
-                    println()
-                    LLVMDumpValue(value)
-                    println()
-                    TODO("not implemented call argument")
+                    TODO("not implemented call argument ${llvm2string(value)} called in ${llvm2string(this)}")
                 }
             }
         }
