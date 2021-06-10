@@ -126,7 +126,7 @@ internal fun checkLlvmModuleExternalCalls(context: Context) {
     val magicValue = Int64(0x2ff68e62079bd1ac) // this constant in duplicated in runtime
     getFunctions(context.llvmModule!!).forEach {
         checker.processFunction(it)
-        if (LLVMGetFirstBasicBlock(it) != null) {
+        if (!it.isExternalFunction()) {
             LLVMSetPrefixData(it, magicValue.llvm)
         }
     }
