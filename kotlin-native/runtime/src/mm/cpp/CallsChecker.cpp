@@ -286,8 +286,6 @@ extern "C" RUNTIME_NOTHROW void Kotlin_mm_checkStateAtExternalFunctionCall(const
         return;
     }
 
-    RuntimeCheck(
-            actualState == ThreadState::kNative, "Expected kNative thread state at call of function %s by function %s",
-            callee, caller);
+    RuntimeFail("Expected kNative thread state at call of function %s by function %s", callee, caller);
 }
 
