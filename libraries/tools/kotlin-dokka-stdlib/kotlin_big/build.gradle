@@ -1,11 +1,13 @@
 apply plugin: 'de.undercouch.download'
 apply plugin: 'base'
 
-final File kotlinLocalDir = rootDir
-final String kotlinVersion = findProperty("defaultSnapshotVersion")
+// kotlin/libraries/tools/kotlin-dokka-stdlib  ->  kotlin
+final File kotlinLocalDir = rootProject.file( "../../../")
+final String kotlinVersion = "1.5.255-SNAPSHOT"
 
 repositories {
   mavenLocal()
+  mavenCentral()
 }
 
 final List<String> modules = [

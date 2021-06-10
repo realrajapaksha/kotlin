@@ -2,8 +2,8 @@ apply plugin: 'de.undercouch.download'
 apply plugin: 'base'
 
 
-final String kotlinNativeLocalDir = new File(rootDir, "kotlin-native")
-
+// kotlin/libraries/tools/kotlin-dokka-stdlib  ->  kotlin/kotlin-native
+final String kotlinNativeLocalDir = rootProject.file( "../../../kotlin-native")
 
 final File binariesDir = new File(buildDir, "binaries")
 

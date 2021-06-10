@@ -439,10 +439,6 @@ if (buildProperties.inJpsBuildIdeaSync) {
             ":kotlin-stdlib:jvm-minimal-for-test",
             ":tools:binary-compatibility-validator",
             ":tools:kotlin-stdlib-gen",
-            ":tools:kotlin-dokka-stdlib",
-            ":tools:kotlin-dokka-stdlib:ant",
-            ":tools:kotlin-dokka-stdlib:kotlin_big",
-            ":tools:kotlin-dokka-stdlib:kotlin_native",
 
             ":kotlin-test",
             ":kotlin-test:kotlin-test-js",
@@ -462,10 +458,6 @@ if (buildProperties.inJpsBuildIdeaSync) {
 
     project(':tools:binary-compatibility-validator').projectDir = "$rootDir/libraries/tools/binary-compatibility-validator" as File
     project(':tools:kotlin-stdlib-gen').projectDir = "$rootDir/libraries/tools/kotlin-stdlib-gen" as File
-    project(':tools:kotlin-dokka-stdlib').projectDir = "$rootDir/libraries/tools/kotlin-dokka-stdlib" as File
-    project(':tools:kotlin-dokka-stdlib:ant').projectDir = "$rootDir/libraries/tools/kotlin-dokka-stdlib/ant" as File
-    project(':tools:kotlin-dokka-stdlib:kotlin_big').projectDir = "$rootDir/libraries/tools/kotlin-dokka-stdlib/kotlin_big" as File
-    project(':tools:kotlin-dokka-stdlib:kotlin_native').projectDir = "$rootDir/libraries/tools/kotlin-dokka-stdlib/kotlin_native" as File
 
     project(':kotlin-test').projectDir = "$rootDir/libraries/kotlin.test" as File
     project(':kotlin-test:kotlin-test-js').projectDir = "$rootDir/libraries/kotlin.test/js" as File
