@@ -35,6 +35,7 @@ private class CallsChecker(val context: Context) {
 
     val getMethodImpl = externalFunction("class_getMethodImplementation", functionType(int8TypePtr, false, int8TypePtr, int8TypePtr))
     val getClass = externalFunction("object_getClass", functionType(int8TypePtr, false, int8TypePtr))
+    val getSuperClass = externalFunction("class_getSuperclass", functionType(int8TypePtr, false, int8TypePtr))
     val checkerFunction = moduleFunction("Kotlin_mm_checkStateAtExternalFunctionCall")
 
     private data class ExternalCallInfo(val name: String?, val calledPtr: LLVMValueRef)
@@ -94,8 +95,9 @@ private class CallsChecker(val context: Context) {
                     callSiteDescription = "$functionName (over objc_msgSendSuper2)"
                     calledName = null
                     val superStruct = LLVMGetArgOperand(call, 0)
-                    val classPtrPtr = LLVMBuildGEP(builder, superStruct, listOf(Int32(0).llvm, Int32(1).llvm).toCValues(), 2, "")
-                    val classPtr = LLVMBuildLoad(builder, classPtrPtr, "")
+                    val superClassPtrPtr = LLVMBuildGEP(builder, superStruct, listOf(Int32(0).llvm, Int32(1).llvm).toCValues(), 2, "")
+                    val superClassPtr = LLVMBuildLoad(builder, superClassPtrPtr, "")
+                    val classPtr = LLVMBuildCall(builder, getSuperClass, listOf(superClassPtr).toCValues(), 1, "")
                     calledPtrLlvm = LLVMBuildCall(builder, getMethodImpl, listOf(classPtr, LLVMGetArgOperand(call, 1)).toCValues(), 2, "")
                 }
                 else -> {

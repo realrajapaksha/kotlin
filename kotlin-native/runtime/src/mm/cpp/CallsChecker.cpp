@@ -99,6 +99,8 @@ constexpr const char* goodFunctionNames[] = {
         "pthread_mutex_unlock",
         "pthread_self",
 
+        "+[NSObject allocWithZone:]",
+        "-[NSObject retain]",
         "+[NSError errorWithDomain:code:userInfo:]",
         "+[NSMethodSignature signatureWithObjCTypes:]",
         "+[NSNull null]",
