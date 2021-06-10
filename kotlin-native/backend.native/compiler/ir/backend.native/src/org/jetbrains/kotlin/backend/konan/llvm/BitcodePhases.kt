@@ -303,10 +303,7 @@ internal val linkBitcodeDependenciesPhase = makeKonanModuleOpPhase(
 internal val checkExternalCallsPhase = makeKonanModuleOpPhase(
         name = "CheckExternalCalls",
         description = "Check external calls",
-        op = { context, _ ->
-            if (context.shouldCheckExternalCalls())
-                checkLlvmModuleExternalCalls(context)
-        }
+        op = { context, _ -> checkLlvmModuleExternalCalls(context) }
 )
 
 
