@@ -17,6 +17,7 @@ import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Compan
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.POD_SETUP_BUILD_TASK_NAME
 import org.jetbrains.kotlin.gradle.plugin.cocoapods.KotlinCocoapodsPlugin.Companion.POD_SPEC_TASK_NAME
 import org.jetbrains.kotlin.gradle.transformProjectWithPluginsDsl
+import org.jetbrains.kotlin.gradle.util.createTempDir
 import org.jetbrains.kotlin.gradle.util.modify
 import org.jetbrains.kotlin.gradle.util.runProcess
 import org.jetbrains.kotlin.konan.target.HostManager
@@ -26,6 +27,7 @@ import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Test
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.TimeUnit
@@ -1387,9 +1389,8 @@ class CocoaPodsIT : BaseGradleIT() {
             if (cocoapodsInstallationRequired) {
                 if (cocoapodsInstallationAllowed) {
                     WorkaroundForXcode12_3.apply()
-                    val output = gem("install", "--user-install", "cocoapods", "cocoapods-generate")
-                    cocoapodsInstallationPath = File(getGemUserInstallationPath()).resolve("bin")
-                    println("ZZZ. CocoaPods installed to $cocoapodsInstallationPath")
+                    val output = gem("install", "--install-dir", cocoapodsInstallationRoot.absolutePath, "cocoapods", "cocoapods-generate")
+                    println("ZZZ. CocoaPods installed to $cocoapodsInstallationRoot")
                     println("Installation output:\n$output")
                 } else {
                     fail(
@@ -1406,68 +1407,48 @@ class CocoaPodsIT : BaseGradleIT() {
 
         @AfterClass
         @JvmStatic
-        fun uninstallPodGen() {
+        fun disposeWorkarounds() {
             println("ZZZ. After. Installation required: $cocoapodsInstallationRequired. Installation allowed: $cocoapodsInstallationAllowed")
-            // Do not remove CocoaPods if we didn't install it.
             if (cocoapodsInstallationRequired && cocoapodsInstallationAllowed) {
-                val packagesToRemove = gem("list", "--no-versions").lineSequence().filter {
-                    it.startsWith("cocoapods")
-                }.toList()
-                try {
-                    val output = gem("uninstall", "--user-install", "-x", *packagesToRemove.toTypedArray())
-                    println("ZZZ. Cocoapods uninstalled. Output:\n${output}")
-                } finally {
-                    WorkaroundForXcode12_3.dispose()
-                }
+                WorkaroundForXcode12_3.dispose()
             }
         }
 
-        private val cocoapodsInstallationRequired: Boolean = !isCocoapodsInstalled()
-        private val cocoapodsInstallationAllowed: Boolean = System.getProperty("installCocoapods").toBoolean()
-        private var cocoapodsInstallationPath: File? = null
-
-        private fun getPathEnv(): String {
-            val oldPath = System.getenv("PATH")
-            return cocoapodsInstallationPath?.let {
-                it.absolutePath + File.pathSeparator + oldPath
-            } ?: oldPath
+        private val cocoapodsInstallationRequired: Boolean by lazy {
+            !isCocoapodsInstalled() || !isPodGenInstalled()
         }
+        private val cocoapodsInstallationAllowed: Boolean = System.getProperty("installCocoapods").toBoolean()
+        private val cocoapodsInstallationRoot: File by lazy { createTempDir("cocoapods") }
+
+        private fun getPathEnv(): String =
+            cocoapodsInstallationRoot.resolve("bin").absolutePath + File.pathSeparator + System.getenv("PATH")
 
         private fun isCocoapodsInstalled(): Boolean {
-            val installed = gem("list", "--no-versions").lines()
-            return "cocoapods-generate" in installed && "cocoapods" in installed
+            // Do not use 'gem list' because the gem may be installed but PATH may miss its executables.
+            // Try to access the pod executable directly instead
+            return try {
+                val result = runProcess(
+                    listOf("pod", "--version"),
+                    File("."),
+                    environmentVariables = mapOf("PATH" to getPathEnv())
+                )
+                result.isSuccessful
+            } catch (e: IOException) {
+                false
+            }
         }
 
-        private fun getGemUserInstallationPath(): String {
-            val installationDirLine = gem("environment").lineSequence().first {
-                it.contains("USER INSTALLATION DIRECTORY:")
-            }
-            return installationDirLine.substringAfter("USER INSTALLATION DIRECTORY:").trim()
+        private fun isPodGenInstalled(): Boolean {
+            val installed = gem("list", "--no-versions").lines()
+            return "cocoapods-generate" in installed
         }
 
         private fun gem(vararg args: String): String {
-            println("ZZZ. Run: gem ${args.joinToString(separator = " ")}")
-            val process = ProcessBuilder("gem", *args).start()
-            val finished = process.waitFor(30, TimeUnit.MINUTES)
-            val output = process.inputStream.use { it.reader().readText() }
-
-            check(finished && process.exitValue() == 0) {
-                if (!finished) {
-                    process.destroyForcibly()
-                }
-
-                val argsString = args.joinToString(separator = " ")
-                val errors = process.errorStream.use { it.reader().readText() }
-                println("'gem $argsString' stdout:\n$errors")
-                println("'gem $argsString' stderr:\n$output")
-
-                if (finished) {
-                    "Process 'gem $argsString' exited with error code ${process.exitValue()}. See log for details."
-                } else {
-                    "Process 'gem $argsString ' killed by timeout. See log for details"
-                }
+            val result = runProcess(listOf("gem", *args), File("."))
+            check(result.isSuccessful) {
+                "Process 'gem ${args.joinToString(separator = " ")}' exited with error code ${result.exitCode}. See log for details."
             }
-            return output
+            return result.output
         }
 
         // Workaround the issue with Ruby paths for Xcode 12.3.
