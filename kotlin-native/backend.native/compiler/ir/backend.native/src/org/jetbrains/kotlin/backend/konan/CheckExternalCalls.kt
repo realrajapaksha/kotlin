@@ -81,8 +81,6 @@ private class CallsChecker(val context: Context) {
             val calledPtrLlvm: LLVMValueRef?
             when (calleeInfo.name) {
                 "objc_msgSend" -> {
-                    //callsiteDescriptionLlvm = context.llvm.staticData.cStringLiteral("$functionName(over objc_msgSend)").llvm
-                    //calledNameLlvm = LLVMConstNull(int8TypePtr)
                     callSiteDescription = "$functionName (over objc_msgSend)"
                     calledName = null
                     val firstArgI8Ptr = LLVMBuildBitCast(builder, LLVMGetArgOperand(call, 0), int8TypePtr, "")
