@@ -329,6 +329,7 @@ extern "C" bool AddressToSymbol(const void* address, char* resultBuffer, size_t 
 #include <dlfcn.h>
 
 extern "C" bool AddressToSymbol(const void* address, char* resultBuffer, size_t resultBufferSize) {
+    if (address == nullptr) return false;
     const char *result = nullptr;
     Dl_info info;
     if (dladdr(address, &info) != 0 && info.dli_sname != nullptr) {
