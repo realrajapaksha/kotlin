@@ -87,7 +87,7 @@ private class CallsChecker(val context: Context) {
                     calledName = null
                     val firstArgI8Ptr = LLVMBuildBitCast(builder, LLVMGetArgOperand(call, 0), int8TypePtr, "")
                     val firstArgClassPtr = LLVMBuildCall(builder, getClass, listOf(firstArgI8Ptr).toCValues(), 1, "")
-                    val isNil = LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, LLVMBuildPtrToInt(builder, firstArgI8Ptr, int64Type, ""), Int64(0).llvm, "")
+                    val isNil = LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, firstArgI8Ptr, LLVMConstNull(int8TypePtr), "")
                     val calledPtrLlvmIfNotNil = LLVMBuildCall(builder, getMethodImpl, listOf(firstArgClassPtr, LLVMGetArgOperand(call, 1)).toCValues(), 2, "")
                     val calledPtrLlvmIfNil = LLVMConstIntToPtr(Int64(-1).llvm, int8TypePtr)
                     calledPtrLlvm = LLVMBuildSelect(builder, isNil, calledPtrLlvmIfNil, calledPtrLlvmIfNotNil, "")
