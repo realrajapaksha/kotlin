@@ -2,17 +2,10 @@ apply plugin: 'de.undercouch.download'
 apply plugin: 'base'
 
 final File kotlinLocalDir = rootDir
-final boolean useExternalBuild = false
-final String externalKotlinBuild = "1.5.20-M1"
-final String externalKotlinVersion = "1.5.20-M1"
-final String kotlinVersion = useExternalBuild ? externalKotlinVersion : findProperty("defaultSnapshotVersion")
+final String kotlinVersion = findProperty("defaultSnapshotVersion")
 
 repositories {
-  if (useExternalBuild) {
-    mavenCentral()
-  } else {
-    mavenLocal()
-  }
+  mavenLocal()
 }
 
 final List<String> modules = [
@@ -72,42 +65,19 @@ modules.forEach { module ->
   extractLibs.dependsOn libsTask
 }
 
-
-final String buildTag = "v${externalKotlinBuild}"
-final String externalSourcesUrl = "https://github.com/JetBrains/kotlin/archive/${buildTag}.zip"
-final File externalSourcesZip = new File(buildDir, "kotlin-${externalKotlinBuild}.zip")
 final File kotlinTargetDir = new File(buildDir, "sources/kotlin")
 
-task downloadExternalKotlinSources(type: Download) {
-  enabled = useExternalBuild
-  src externalSourcesUrl
-  dest externalSourcesZip
-  overwrite false
-}
+task extractKotlinSources(type: Sync) {
+  from kotlinLocalDir
+  exclude "**/build"
+  exclude "**/node_modules"
 
-task extractKotlinSources(type: Sync, dependsOn: downloadExternalKotlinSources) {
-  String pathPrefix = ""
+  include "libraries/stdlib/**"
+  include "libraries/kotlin.test/**"
+  include "core/builtins/**"
+  include "core/reflection.jvm/**"
 
-  if (!useExternalBuild) {
-    from kotlinLocalDir
-    exclude "**/build"
-    exclude "**/node_modules"
-  } else {
-    from zipTree(externalSourcesZip)
-    pathPrefix = "*/"
-
-    eachFile { FileCopyDetails file ->
-      //assume all files in the folder
-      file.path = file.path.split("/", 2)[1]
-    }
-  }
-
-  include "${pathPrefix}libraries/stdlib/**"
-  include "${pathPrefix}libraries/kotlin.test/**"
-  include "${pathPrefix}core/builtins/**"
-  include "${pathPrefix}core/reflection.jvm/**"
-
-  exclude "${pathPrefix}core/builtins/src/kotlin/reflect/"
+  exclude "core/builtins/src/kotlin/reflect/"
 
   includeEmptyDirs = false
 

@@ -3,79 +3,22 @@ apply plugin: 'base'
 
 
 final String kotlinNativeLocalDir = new File(rootDir, "kotlin-native")
-final boolean useExternalBuild = false
-final String externalKotlinNativeBuild = "1.5.20-M1"
-final String externalKotlinNativeVersion = "1.5.20-M1"
 
-configurations {
-  kotlin_native
-}
-
-if (useExternalBuild) {
-  repositories {
-    ivy {
-      url "https://download.jetbrains.com/kotlin/native/builds/releases/"
-      patternLayout {
-        // e.g. https://download.jetbrains.com/kotlin/native/builds/releases/1.2.1-eap-9664/macos/kotlin-native-macos-1.2.1-eap-9664.tar.gz
-        artifact "[revision]/[classifier]/[module]-[classifier]-[revision].[ext]"
-
-        metadataSources {
-          artifact()
-        }
-      }
-    }
-  }
-
-  dependencies {
-    kotlin_native group: "org.jetbrains.kotlin", name: "kotlin-native", version: externalKotlinNativeVersion, classifier: "linux", ext: "tar.gz"
-  }
-}
 
 final File binariesDir = new File(buildDir, "binaries")
 
 task extractKotlinNativeBinaries(type: Sync) {
-  if (!useExternalBuild) {
-    from file(new File(kotlinNativeLocalDir, "dist"))
-  } else {
-    from tarTree(resources.gzip(configurations.kotlin_native.singleFile))
-
-    eachFile { FileCopyDetails file ->
-      //assume all files in the folder
-      file.path = file.path.split("/", 2)[1]
-    }
-  }
+  from file(new File(kotlinNativeLocalDir, "dist"))
   into binariesDir
 
   includeEmptyDirs = false
 }
 
 
-final String buildTag = "v${externalKotlinNativeBuild}"
-final String externalSourcesUrl = "https://github.com/JetBrains/kotlin/archive/${buildTag}.zip"
-final File externalSourcesZip = new File(buildDir, "kotlin-${externalKotlinNativeBuild}.zip")
 final File kotlinNativeTargetDir = new File(buildDir, "sources")
 
-
-task downloadExternalKotlinNativeSources(type: Download) {
-  enabled = useExternalBuild
-  src externalSourcesUrl
-  dest externalSourcesZip
-  overwrite false
-}
-
-task extractKotlinNativeSources(type: Sync, dependsOn: downloadExternalKotlinNativeSources) {
-  if (!useExternalBuild) {
-    from kotlinNativeLocalDir
-  } else {
-    from(zipTree(externalSourcesZip)) {
-      include "**/kotlin-native/**"
-
-      eachFile { FileCopyDetails file ->
-        //assume all files in the folder
-        file.path = file.path.split("/", 3)[2]
-      }
-    }
-  }
+task extractKotlinNativeSources(type: Sync) {
+  from kotlinNativeLocalDir
   into kotlinNativeTargetDir
 
   includeEmptyDirs = false
