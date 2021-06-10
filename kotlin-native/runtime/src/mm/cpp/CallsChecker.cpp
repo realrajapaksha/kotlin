@@ -255,8 +255,8 @@ thread_local KnownFunctionChecker checker;
  */
 extern "C" RUNTIME_NOTHROW void Kotlin_mm_checkStateAtExternalFunctionCall(const char* caller, const char *callee, const void *calleePtr) noexcept {
     if (reinterpret_cast<int64_t>(calleePtr) == -1) return; // objc_sendMsg called on nil, it does nothing, so it's ok
-    if (!strcmp(caller, "_ZN5konan33isThreadSpecificDestructorRunningEv")) return;
-    if (konan::isThreadSpecificDestructorRunning()) return;
+    if (!strcmp(caller, "_ZN5konan36isOnThreadExitNotSetOrAlreadyStartedEv")) return;
+    if (konan::isOnThreadExitNotSetOrAlreadyStarted()) return;
     if (recursiveCallGuard) return;
     if (!mm::ThreadRegistry::Instance().IsCurrentThreadRegistered()) return;
     struct unlockGuard {

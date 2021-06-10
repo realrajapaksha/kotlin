@@ -201,7 +201,7 @@ static void onThreadExitCallback(void* value) {
   }
 }
 
-bool isThreadSpecificDestructorRunning() {
+bool isOnThreadExitNotSetOrAlreadyStarted() {
     return terminationKey != 0 && pthread_getspecific(terminationKey) == nullptr;
 }
 
