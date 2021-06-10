@@ -5,12 +5,8 @@
 
 package org.jetbrains.kotlin.gradle.targets.js.npm
 
-import com.google.gson.ExclusionStrategy
-import com.google.gson.FieldAttributes
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
+import com.google.gson.*
 import org.gradle.api.GradleException
-import org.gradle.api.tasks.Input
 import org.jetbrains.kotlin.gradle.internal.ensureParentDirsCreated
 import java.io.File
 import java.io.Serializable
@@ -109,13 +105,19 @@ class PackageJson(
 
         packageJsonFile.ensureParentDirsCreated()
         val jsonTree = gson.toJsonTree(this)
+        val previous = packageJsonFile.reader().use {
+            JsonParser.parseReader(it)
+        }
+
         customFields
             .forEach { (key, value) ->
                 val valueElement = gson.toJsonTree(value)
                 jsonTree.asJsonObject.add(key, valueElement)
             }
-        packageJsonFile.writer().use {
-            gson.toJson(jsonTree, it)
+        if (previous != jsonTree) {
+            packageJsonFile.writer().use {
+                gson.toJson(jsonTree, it)
+            }
         }
     }
 }
