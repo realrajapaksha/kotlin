@@ -39,7 +39,7 @@ private class CallsChecker(val context: Context) {
 
     private data class ExternalCallInfo(val name: String?, val calledPtr: LLVMValueRef)
 
-    private fun LLVMValueRef.getCalledFunction(): ExternalCallInfo? {
+    private fun LLVMValueRef.getPossiblyExternalCalledFunction(): ExternalCallInfo? {
         fun isIndirectCallArgument(value: LLVMValueRef) = LLVMIsALoadInst(value) != null || LLVMIsAArgument(value) != null ||
                 LLVMIsAPHINode(value) != null || LLVMIsASelectInst(value) != null || LLVMIsACallInst(value) != null
 
@@ -74,7 +74,7 @@ private class CallsChecker(val context: Context) {
         val builder = LLVMCreateBuilderInContext(llvmContext)
 
         for (call in calls) {
-            val calleeInfo = call.getCalledFunction() ?: continue
+            val calleeInfo = call.getPossiblyExternalCalledFunction() ?: continue
             LLVMPositionBuilderBefore(builder, call)
             val callSiteDescription: String
             val calledName: String?
