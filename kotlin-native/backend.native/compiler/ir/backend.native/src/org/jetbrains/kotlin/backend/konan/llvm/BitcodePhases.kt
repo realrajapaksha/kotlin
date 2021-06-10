@@ -329,13 +329,6 @@ internal val verifyBitcodePhase = makeKonanModuleOpPhase(
         op = { context, _ -> context.verifyBitCode() }
 )
 
-internal val verifyBitcodeChangesPhase = makeKonanModuleOpPhase(
-        name = "VerifyBitcodeChanges",
-        description = "Verify bitcode changes",
-        op = { context, _ -> context.verifyBitCode() }
-)
-
-
 internal val printBitcodePhase = makeKonanModuleOpPhase(
         name = "PrintBitcode",
         description = "Print bitcode",

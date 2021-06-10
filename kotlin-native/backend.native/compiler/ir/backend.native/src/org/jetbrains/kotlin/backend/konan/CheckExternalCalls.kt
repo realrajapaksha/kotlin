@@ -131,4 +131,5 @@ internal fun checkLlvmModuleExternalCalls(context: Context) {
             LLVMSetPrefixData(it, magicValue.llvm)
         }
     }
+    context.verifyBitCode()
 }

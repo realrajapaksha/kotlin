@@ -402,7 +402,6 @@ private val backendCodegen = namedUnitPhase(
                 printBitcodePhase then
                 linkBitcodeDependenciesPhase then
                 checkExternalCallsPhase then
-                verifyBitcodeChangesPhase then
                 bitcodeOptimizationPhase then
                 unitSink()
 )
@@ -467,7 +466,6 @@ internal fun PhaseConfig.konanPhasesConfig(config: KonanConfig) {
         disableUnless(dcePhase, getBoolean(KonanConfigKeys.OPTIMIZATION))
         disableUnless(ghaPhase, getBoolean(KonanConfigKeys.OPTIMIZATION))
         disableUnless(verifyBitcodePhase, config.needCompilerVerification || getBoolean(KonanConfigKeys.VERIFY_BITCODE))
-        disableUnless(verifyBitcodeChangesPhase, config.needCompilerVerification || getBoolean(KonanConfigKeys.VERIFY_BITCODE))
 
         val isDescriptorsOnlyLibrary = config.metadataKlib == true
         disableIf(psiToIrPhase, isDescriptorsOnlyLibrary)
