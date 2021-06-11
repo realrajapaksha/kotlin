@@ -3,7 +3,9 @@ apply plugin: 'base'
 
 // kotlin/libraries/tools/kotlin-dokka-stdlib  ->  kotlin
 final File kotlinRootDir = rootProject.file( "../../../")
-final String kotlinVersion = "1.5.255-SNAPSHOT"
+
+final boolean isTeamcityBuild = System.getenv("TEAMCITY_VERSION") != null
+final String kotlinVersion = isTeamcityBuild ? System.getProperty("deployVersion") : "1.5.255-SNAPSHOT"
 
 repositories {
   mavenLocal()
@@ -25,7 +27,9 @@ final List<String> modules = [
 ]
 
 
-task extractLibs() { }
+task extractLibs() {
+  enabled = !isTeamcityBuild
+}
 
 
 final File kotlinLibsDir = new File(buildDir, 'libs')
