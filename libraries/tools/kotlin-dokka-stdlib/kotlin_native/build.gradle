@@ -3,28 +3,16 @@ apply plugin: 'base'
 
 
 // kotlin/libraries/tools/kotlin-dokka-stdlib  ->  kotlin/kotlin-native
-final String kotlinNativeLocalDir = rootProject.file( "../../../kotlin-native")
-
-final File binariesDir = new File(buildDir, "binaries")
-
-task extractKotlinNativeBinaries(type: Sync) {
-  from file(new File(kotlinNativeLocalDir, "dist"))
-  into binariesDir
-
-  includeEmptyDirs = false
-}
+final String kotlinNativeRootDir = rootProject.file( "../../../kotlin-native")
+final File kotlinNativeLibsDir = new File(buildDir, "libs")
 
 
-final File kotlinNativeTargetDir = new File(buildDir, "sources")
-
-task extractKotlinNativeSources(type: Sync) {
-  from kotlinNativeLocalDir
-  into kotlinNativeTargetDir
+task extractLibs(type: Sync) {
+  from file(new File(kotlinNativeRootDir, "dist/klib"))
+  into file(new File(kotlinNativeLibsDir, "klib"))
 
   includeEmptyDirs = false
 }
 
-task extractKotlinNative(dependsOn: [extractKotlinNativeSources, extractKotlinNativeBinaries]) {}
-
-project.extensions.kotlin_native_root = kotlinNativeTargetDir
-project.extensions.kotlin_native_bin_linux = binariesDir
+project.extensions.kotlin_native_root = kotlinNativeRootDir
+project.extensions.kotlin_native_libs = kotlinNativeLibsDir

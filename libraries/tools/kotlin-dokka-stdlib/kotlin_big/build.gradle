@@ -2,7 +2,7 @@ apply plugin: 'de.undercouch.download'
 apply plugin: 'base'
 
 // kotlin/libraries/tools/kotlin-dokka-stdlib  ->  kotlin
-final File kotlinLocalDir = rootProject.file( "../../../")
+final File kotlinRootDir = rootProject.file( "../../../")
 final String kotlinVersion = "1.5.255-SNAPSHOT"
 
 repositories {
@@ -25,67 +25,33 @@ final List<String> modules = [
 ]
 
 
-task extractSources() { }
 task extractLibs() { }
 
 
-final File kotlin_lib_sources = new File(buildDir, 'sources')
-final File kotlin_lib_binaries = new File(buildDir, 'libs')
+final File kotlinLibsDir = new File(buildDir, 'libs')
 
 modules.forEach { module ->
-  final String src = "kotlin_src_$module"
   final String lib = "kotlin_lib_$module"
 
-  final Configuration conf_src = configurations.create(src)
   final Configuration  lib_src = configurations.create(lib)
 
   if (module == "kotlin-test-js") {
-    conf_src.attributes {attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "kotlin-runtime")) }
     lib_src.attributes {attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "kotlin-runtime")) }
   }
 
   dependencies {
-    "$src"(group: 'org.jetbrains.kotlin', name: module, version: kotlinVersion, classifier: 'sources') { transitive = false }
     "$lib"(group: 'org.jetbrains.kotlin', name: module, version: kotlinVersion)
-  }
-
-  final Task sourcesTask = tasks.create("extract_source_$module", Sync) {
-    dependsOn conf_src
-
-    from { conf_src.collect { zipTree(it) } }
-    into "$kotlin_lib_sources/$module"
   }
 
   final Task libsTask = tasks.create("extract_lib_$module", Sync) {
     dependsOn lib_src
 
     from { lib_src }
-    into "$kotlin_lib_binaries/$module"
+    into "$kotlinLibsDir/$module"
   }
 
-  extractSources.dependsOn sourcesTask
   extractLibs.dependsOn libsTask
 }
 
-final File kotlinTargetDir = new File(buildDir, "sources/kotlin")
-
-task extractKotlinSources(type: Sync) {
-  from kotlinLocalDir
-  exclude "**/build"
-  exclude "**/node_modules"
-
-  include "libraries/stdlib/**"
-  include "libraries/kotlin.test/**"
-  include "core/builtins/**"
-  include "core/reflection.jvm/**"
-
-  exclude "core/builtins/src/kotlin/reflect/"
-
-  includeEmptyDirs = false
-
-  into kotlinTargetDir
-}
-
-project.extensions.kotlin_root = kotlinTargetDir
-project.extensions.kotlin_sources = kotlin_lib_sources
-project.extensions.kotlin_libs = kotlin_lib_binaries
+project.extensions.kotlin_root = kotlinRootDir
+project.extensions.kotlin_libs = kotlinLibsDir
